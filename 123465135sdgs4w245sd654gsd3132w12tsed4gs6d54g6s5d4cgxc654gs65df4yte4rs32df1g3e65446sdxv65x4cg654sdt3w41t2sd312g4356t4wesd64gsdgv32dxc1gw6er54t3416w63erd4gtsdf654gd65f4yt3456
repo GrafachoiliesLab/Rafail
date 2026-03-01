@@ -35,11 +35,11 @@ end
 WindUI:Popup({
     Title = "Welcome",
     Icon = "bird",
-    Content = "This Version is not yet finished we just have to drop it a little sooner for personal reason.",
+    Content = "This Script is a remake of azure.",
     Buttons = {
         {
             Title = "Ok",
-            Icon = "cat",
+            Icon = "bird",
         }
     }
 })
