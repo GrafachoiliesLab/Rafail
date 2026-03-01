@@ -3369,7 +3369,7 @@ ConfigTab:Space()
 ConfigTab:Dropdown({
     Flag = "ThemeChanger",
     Title = "Theme Changer",
-    Values = {"Dark", "Light", "Rose", "Sky", "Plant", "Red", "Indigo", "Amber", "Violet", "Emerald", "Midnight", "Crimson", "Monokai Pro", "Cotton Candy", "Rainbow", "AzuresTheme", "MethionGradient"},
+    Values = {"Dark", "Light", "Rose", "Sky", "Plant", "Red", "Indigo", "Amber", "Violet", "Emerald", "Midnight", "Crimson", "MonokaiPro", "CottonCandy", "Rainbow", "AzuresTheme", "MethionGradient"},
     Value = "MethionGradient",
     Callback = function(theme)
         pcall(function()
