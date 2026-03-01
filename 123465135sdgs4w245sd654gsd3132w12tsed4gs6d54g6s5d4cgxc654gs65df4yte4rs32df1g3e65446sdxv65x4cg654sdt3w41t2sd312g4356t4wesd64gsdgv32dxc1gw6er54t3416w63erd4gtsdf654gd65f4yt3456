@@ -48,7 +48,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/weatherwess-lgtm/FlyT
 local Window = WindUI:CreateWindow({
     Title = "YBA Script",
     Icon = "rbxthumb://type=Asset&id=92343328137209&w=150&h=150",
-    Author = "by Azure",
+    Author = "by Methion",
     Folder = "yba_script",
     IconSize = 70,
     NewElements = true,
@@ -57,7 +57,7 @@ local Window = WindUI:CreateWindow({
     BackgroundImageTransparency = 0.8,
     Transparent = true,
     OpenButton = {
-        Title = "Open Azure UI",
+        Title = "Open Methion UI",
         CornerRadius = UDim.new(5,0),
         StrokeThickness = 4,
         Enabled = true,
@@ -189,7 +189,7 @@ local AboutSection = AboutTab:Section({
     Title = "Thank You",
 })
 AboutSection:Section({
-    Title = "Thank you for using Azure's YBA Script v1.6.65!",
+    Title = "Thank you for using Methion's YBA Script v1.6.65!",
     TextSize = 24,
     FontWeight = Enum.FontWeight.SemiBold,
 })
