@@ -43,7 +43,7 @@ WindUI:Popup({
         }
     }
 })
-setclipboard("https://discord.gg/WR2SFuCc77")
+setclipboard("https://discord.gg/f5yZnXgVfP")
 loadstring(game:HttpGet("https://raw.githubusercontent.com/weatherwess-lgtm/FlyToggle/refs/heads/main/Clipboard"))()
 local Window = WindUI:CreateWindow({
     Title = "YBA Script",
@@ -243,7 +243,7 @@ AboutSection:Space()
 AboutSection:Button({
     Title = "Copy Discord Link",
     Callback = function()
-        setclipboard("https://discord.gg/WR2SFuCc77")
+        setclipboard("https://discord.gg/f5yZnXgVfP")
         notify("Copied", "Discord link copied to clipboard!")
     end
 })
