@@ -2009,11 +2009,11 @@ MiscTab:Slider({
     end
 })
 MiscTab:Section({
-    Title = "Walkspeed Modifier",
+    Title = "Speed",
 })
 MiscTab:Slider({
-    Flag = "WalkspeedModifier",
-    Title = "Walkspeed Modifier",
+    Flag = "Speed",
+    Title = "Speed Changer",
     Step = 1,
     Value = {
         Min = 0,
