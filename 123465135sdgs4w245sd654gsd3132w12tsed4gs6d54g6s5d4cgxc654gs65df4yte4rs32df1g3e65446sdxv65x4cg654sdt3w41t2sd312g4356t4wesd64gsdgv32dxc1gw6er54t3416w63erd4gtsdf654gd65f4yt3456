@@ -6,7 +6,7 @@ do
     if ok then
         WindUI = result
     else
-        local winduiCode = game:HttpGet("https://raw.githubusercontent.com/induchSandWitch/AzureUilib/refs/heads/main/Azures")
+        local winduiCode = game:HttpGet("https://raw.githubusercontent.com/induchSandWitch/Methion/refs/heads/main/MethionUi")
         
         local oldMakeFolder = makefolder
         local oldWriteFile = writefile
@@ -33,9 +33,9 @@ do
     end
 end
 WindUI:Popup({
-    Title = "Welcome",
+    Title = "Please Read Before Farming",
     Icon = "bird",
-    Content = "This Script is a remake of azure.",
+    Content = "This Script is a remake of azure. if you keeps getting kick it is either your wifi or you have a ***** executor. and remember if you got ban it is not our problem we didnt force you to use our script.",
     Buttons = {
         {
             Title = "Ok",
@@ -185,179 +185,349 @@ local AboutTab = Window:Tab({
     Title = "About",
     Icon = "info",
 })
-local AboutSection = AboutTab:Section({
-    Title = "Thank You",
-})
-AboutSection:Section({
-    Title = "Thank you for using Methion's YBA Script v1.6.65!",
-    TextSize = 24,
-    FontWeight = Enum.FontWeight.SemiBold,
-})
-AboutSection:Space()
-AboutSection:Section({
-    Title = "Tips",
-    TextSize = 18,
-    TextTransparency = .35,
-    FontWeight = Enum.FontWeight.Medium,
-})
-AboutSection:Section({
-    Title = "- If you want the script to automatically pick quests for you until max, select the highest level which is Level 35",
-    TextSize = 18,
-    TextTransparency = .35,
-    FontWeight = Enum.FontWeight.Medium,
-})
-AboutSection:Space()
-AboutSection:Section({
-    Title = "- And if your farming for item please enable the Auto Sell on max to avoid ignoring maxed item",
-    TextSize = 18,
-    TextTransparency = .35,
-    FontWeight = Enum.FontWeight.Medium,
-})
-AboutSection:Space()
-AboutSection:Section({
-    Title = "- Buffed instant travel: Faster and more stable item collection",
-    TextSize = 18,
-    TextTransparency = .35,
-    FontWeight = Enum.FontWeight.Medium,
-})
-AboutSection:Space()
-AboutSection:Section({
-    Title = "- Sell worthless items regularly to maximize profits",
-    TextSize = 18,
-    TextTransparency = .35,
-    FontWeight = Enum.FontWeight.Medium,
-})
-AboutSection:Space()
-AboutSection:Section({
-    Title = "- Enable Boost FPS to avoid lag during intensive farming",
-    TextSize = 18,
-    TextTransparency = .35,
-    FontWeight = Enum.FontWeight.Medium,
-})
-AboutSection:Paragraph({
-    Animate = true,
-    Title = "JOIN THE DISCORD CHANNEL BELOW!",
-    Desc = "Help us with the script by join ur discord channel and chat there to join any giveaways!."
-})
-AboutSection:Space()
-AboutSection:Button({
-    Title = "Copy Discord Link",
-    Callback = function()
-        setclipboard("https://discord.gg/f5yZnXgVfP")
-        notify("Copied", "Discord link copied to clipboard!")
-    end
-})
-local WhatsNewSection = AboutTab:Section({
-    Title = "What's New",
+
+AboutTab:Section({
+    Title = "METHION YBA SCRIPT",
+    TextSize = 28,
+    FontWeight = Enum.FontWeight.Bold,
 })
 
-WhatsNewSection:Section({
-    Title = "✨ Latest Updates v1.6.65+",
+AboutTab:Paragraph({
+    Animate = true,
+    Title = "Welcome — you opened the right folder.",
+    Desc = "I’m Azurey. I slapped this thing together between a snack and a meltdown. It works, it’s messy, and you’ll probably get stuff faster than most players. If you want polish, go buy a museum ticket. If you want results, keep reading.",
+    TextSize = 16
+})
+
+AboutTab:Space()
+
+AboutTab:Section({
+    Title = "Our Philosophy",
     TextSize = 20,
     FontWeight = Enum.FontWeight.SemiBold,
 })
 
-WhatsNewSection:Space()
-WhatsNewSection:Section({
-    Title = "- Requires supported executor support",
-    TextSize = 16,
-    TextTransparency = .3,
-    FontWeight = Enum.FontWeight.Medium,
+AboutTab:Paragraph({
+    Title = "Stop clicking. Start living.",
+    Desc = "If your thumb still thinks it’s a button presser, this script is the intervention. We automate the boring, prioritize the profitable, and make you look suspiciously competent without trying.",
+    TextSize = 15
 })
 
-WhatsNewSection:Section({
-    Title = "- Reduces kick chance significantly",
-    TextSize = 16,
-    TextTransparency = .3,
-    FontWeight = Enum.FontWeight.Medium,
+AboutTab:Space()
+
+AboutTab:Section({
+    Title = "Pro Tips (do these unless you enjoy suffering)",
+    TextSize = 20,
+    FontWeight = Enum.FontWeight.SemiBold,
 })
 
-WhatsNewSection:Space()
+AboutTab:Paragraph({
+    Title = "Quest Progression Mastery",
+    Desc = "Set the target level and walk away. The script picks the quests, optimizes the route, and pretends not to enjoy doing your job. You keep the glory. I keep the receipts.",
+    TextSize = 14
+})
 
-WhatsNewSection:Section({
+AboutTab:Paragraph({
+    Title = "Inventory Management 101",
+    Desc = "Turn on Auto Sell on Max. Nobody flexes with a bag full of junk. Also, your inventory won’t silently judge you anymore.",
+    TextSize = 14
+})
+
+AboutTab:Paragraph({
+    Title = "Instant Travel",
+    Desc = "Teleport around like you actually paid for speed. Faster pickups, fewer awkward walks, and zero sympathy for people who still sprint everywhere.",
+    TextSize = 14
+})
+
+AboutTab:Paragraph({
+    Title = "Profit Maximization",
+    Desc = "Sell trash. Keep gems. Watch your bank inflate while your ego tries to play catch-up.",
+    TextSize = 14
+})
+
+AboutTab:Paragraph({
+    Title = "Performance Optimization",
+    Desc = "Enable Boost FPS if your rig screams when you open the closet. We cut effects and tantrums so your game behaves like an adult.",
+    TextSize = 14
+})
+
+AboutTab:Space()
+
+AboutTab:Section({
+    Title = "Reality Check",
+    TextSize = 20,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
+
+AboutTab:Paragraph({
+    Title = "Disclaimer: No hand-holding",
+    Desc = "Use this at your own risk. If you test fate and run it on your main at peak hours, don’t message me crying at 3 AM. Use alts. Use common sense. If your executor melts, it wasn’t the script’s fault — probably.",
+    TextSize = 14
+})
+
+AboutTab:Space()
+
+AboutTab:Section({
+    Title = "Discord — come hang",
+    TextSize = 22,
+    FontWeight = Enum.FontWeight.Bold,
+})
+
+AboutTab:Paragraph({
+    Animate = true,
+    Title = "Where we patch, argue, and meme",
+    Desc = "Drop in if you want updates, bug fixes, or to watch someone argue over whether a variable should be named 'x' or 'the_impending_doom'. There’s also a guy who asks if it’s detected every day. He gets roasted daily.",
+    TextSize = 16
+})
+
+AboutTab:Button({
+    Title = "Copy Discord Invite",
+    Icon = "copy",
+    Callback = function()
+        setclipboard("https://discord.gg/f5yZnXgVfP")
+        notify("Methion Hub", "Discord invite copied. Paste it like you mean it.")
+    end
+})
+
+AboutTab:Space()
+
+AboutTab:Section({
+    Title = "The Architects",
+    TextSize = 20,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
+
+AboutTab:Paragraph({
+    Title = "Dev Team Roster",
+    Desc = "A bunch of caffeine-fueled neckbeards who decided to optimize misery into gain.",
+    TextSize = 14
+})
+
+AboutTab:Paragraph({
+    Title = "@ErasedDiablo — Co-Owner & Lead Dev",
+    Desc = "Runs things, forgets to log out, and will hotfix your life if you bribe them with snacks.",
+    TextSize = 14
+})
+
+AboutTab:Paragraph({
+    Title = "@Gaxhlol — Main Dev & Architect",
+    Desc = "Writes spaghetti with style. Will defend a terrible design because it’s 'elegant in edge cases.'",    
+    TextSize = 14
+})
+
+AboutTab:Paragraph({
+    Title = "@Kazakori — Dev Helper",
+    Desc = "Breaks the codebase in creative ways and then heroically pretends it was a feature.",
+    TextSize = 14
+})
+
+AboutTab:Paragraph({
+    Title = "@Kaz — Dev/Helper (Retired)",
+    Desc = "Paid in kudos and lore. Last seen arguing with Git about who owns the past.",
+    TextSize = 14
+})
+
+AboutTab:Paragraph({
+    Title = "@Findingwaysto**** — Dev/Helper (Retired)",
+    Desc = "Name redacted because drama. If you know, you know; if you don’t, good for you.",
+    TextSize = 14
+})
+
+AboutTab:Space()
+
+AboutTab:Paragraph({
+    Title = "UI Framework",
+    Desc = "Powered by WindUI by Footagesus — does most of the heavy lifting so we can look slightly less criminal.",
+    TextSize = 14
+})
+
+AboutTab:Space()
+
+AboutTab:Paragraph({
+    Title = "Made with bad posture and leftover pizza.",
+    Desc = "Version 1.6.66 | Released: 2026 — yes it’s 2026, update or get left behind.",
+    TextSize = 12,
+    TextTransparency = 0.5
+})
+
+local WhatsNewTab = Window:Tab({
+    Title = "Updates",
+    Icon = "sparkles",
+})
+
+WhatsNewTab:Section({
+    Title = "PATCH NOTES v1.6.66",
+    TextSize = 26,
+    FontWeight = Enum.FontWeight.Bold,
+})
+
+WhatsNewTab:Paragraph({
+    Animate = true,
+    Title = "The 'It Actually Does The Thing' Update",
+    Desc = "We fixed the dumb stuff, tightened the engines, and stopped the client from staging a revolt. It’s faster, less dramatic, and more annoying to enemies.",
+    TextSize = 15
+})
+
+WhatsNewTab:Space()
+
+WhatsNewTab:Section({
+    Title = "Major Additions",
+    TextSize = 20,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
+
+WhatsNewTab:Paragraph({
+    Title = "Executor Detection",
+    Desc = "Detects supported executors and gives them full power. Unsupported ones get a polite shrug and reduced features — like a bouncer refusing entry to people in flip-flops.",
+    TextSize = 14
+})
+
+WhatsNewTab:Paragraph({
+    Title = "Anti-Kick Measures",
+    Desc = "Added workarounds so servers are less likely to boot you for being overachieving. Not bulletproof, but solid enough for casual chaos.",
+    TextSize = 14
+})
+
+WhatsNewTab:Space()
+
+WhatsNewTab:Section({
     Title = "Safe Place Farming",
-    TextSize = 16,
-    TextTransparency = .3,
-    FontWeight = Enum.FontWeight.Medium,
+    TextSize = 18,
+    FontWeight = Enum.FontWeight.SemiBold,
 })
 
-WhatsNewSection:Section({
-    Title = "- Instantly teleports to safe coordinates",
-    TextSize = 16,
-    TextTransparency = .3,
-    FontWeight = Enum.FontWeight.Medium,
+WhatsNewTab:Paragraph({
+    Title = "Paranoid Farmer",
+    Desc = "Teleports you somewhere cozy to collect loot while NPCs cry in the distance. Not invincible, just smugly safe.",
+    TextSize = 14
 })
 
-WhatsNewSection:Section({
-    Title = "- Avoids NPCs and player interference",
-    TextSize = 16,
-    TextTransparency = .3,
-    FontWeight = Enum.FontWeight.Medium,
+WhatsNewTab:Paragraph({
+    Title = "Smart Evasion",
+    Desc = "Avoids choke points and drama. The script has better survival instincts than some players I’ve met.",
+    TextSize = 14
 })
 
-WhatsNewSection:Space()
+WhatsNewTab:Space()
 
-WhatsNewSection:Section({
-    Title = "Buffed Instant Method",
-    TextSize = 16,
-    TextTransparency = .3,
-    FontWeight = Enum.FontWeight.Medium,
+WhatsNewTab:Section({
+    Title = "Instant Travel Buffs",
+    TextSize = 18,
+    FontWeight = Enum.FontWeight.SemiBold,
 })
 
-WhatsNewSection:Section({
-    Title = "- Faster and more reliable teleportation",
-    TextSize = 16,
-    TextTransparency = .3,
-    FontWeight = Enum.FontWeight.Medium,
+WhatsNewTab:Paragraph({
+    Title = "Travels",
+    Desc = "Movement is snappier with fewer weird teleport hiccups. You’ll collect items before your competitors realize they existed.",
+    TextSize = 14
 })
 
-WhatsNewSection:Section({
-    Title = "- Improved item collection speed",
-    TextSize = 16,
-    TextTransparency = .3,
-    FontWeight = Enum.FontWeight.Medium,
+WhatsNewTab:Paragraph({
+    Title = "Safety Tweaks",
+    Desc = "Fixed cases that used to fling players into the void. We added sanity checks and a slight fear of cliffs.",
+    TextSize = 14
 })
 
-WhatsNewSection:Space()
+WhatsNewTab:Space()
 
-WhatsNewSection:Section({
-    Title = "Stand Farm",
-    TextSize = 16,
-    TextTransparency = .3,
-    FontWeight = Enum.FontWeight.Medium,
+WhatsNewTab:Section({
+    Title = "Stand Farming",
+    TextSize = 18,
+    FontWeight = Enum.FontWeight.SemiBold,
 })
 
-WhatsNewSection:Section({
-    Title = "- Farm for specific stands",
-    TextSize = 16,
-    TextTransparency = .3,
-    FontWeight = Enum.FontWeight.Medium,
+WhatsNewTab:Paragraph({
+    Title = "Target Stand",
+    Desc = "Pick the stand you want and stop gambling. The script hunts specific stands so you can flex without excuses.",
+    TextSize = 14
 })
 
-WhatsNewSection:Section({
-    Title = "- Shiny stand support included",
-    TextSize = 16,
-    TextTransparency = .3,
-    FontWeight = Enum.FontWeight.Medium,
+WhatsNewTab:Paragraph({
+    Title = "Shiny Hunter Mode",
+    Desc = "Detects shiny variants and handles them how you told it to. Celebrations entirely optional but recommended if you want attention.",
+    TextSize = 14
 })
-AboutSection:Space()
-AboutSection:Paragraph({
-    Title = "Lists of all devs",
-    Desc = "This script has a total of 5 devs."
+
+WhatsNewTab:Paragraph({
+    Title = "Roka Management",
+    Desc = "Handles Rokakakas and resources so you don’t run out mid-farm. Buys when needed, stops when broke. You’re welcome.",
+    TextSize = 14
 })
-AboutSection:Paragraph({ Title = "Credits", Desc = "Dev-Team", TextSize = 14 })
 
-AboutSection:Paragraph({ Title = "@Kazakori", Desc = "Dev-Helper", TextSize = 14 })
+WhatsNewTab:Space()
 
-AboutSection:Paragraph({ Title = "@ErasedDiablo", Desc = "Co-Owner-Dev", TextSize = 16 })
+WhatsNewTab:Section({
+    Title = "QoL Upgrades",
+    TextSize = 18,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
 
-AboutSection:Paragraph({ Title = "@Gaxhlol", Desc = "Main.Dev-OG", TextSize = 16 })
+WhatsNewTab:Paragraph({
+    Title = "Auto-Sell Intelligence",
+    Desc = "Now smarter about what it sells. Won’t accidentally vendor important stuff unless you’ve been very audacious.",
+    TextSize = 14
+})
 
-AboutSection:Paragraph({ Title = "@Kaz", Desc = "Dev/Helper-Quited", TextSize = 14 })
+WhatsNewTab:Paragraph({
+    Title = "Quest Logic",
+    Desc = "Auto-selects the best path from your current level to your target. Think of it as the script whispering cheat codes quietly.",
+    TextSize = 14
+})
 
-AboutSection:Paragraph({ Title = "@Findingwaysto****", Desc = "Dev/Helper-Quited", TextSize = 14 })
+WhatsNewTab:Paragraph({
+    Title = "FPS Booster",
+    Desc = "Cuts unnecessary effects so even dusty laptops feel brave. Less flair, more frames.",
+    TextSize = 14
+})
 
-AboutSection:Paragraph({ Title = "UI Library", Desc = "WindUI by Footagesus - best ui lib fr", TextSize = 14 })
+WhatsNewTab:Space()
+
+WhatsNewTab:Section({
+    Title = "Bug Fixes & Polish",
+    TextSize = 18,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
+
+WhatsNewTab:Paragraph({
+    Title = "Connection Stability",
+    Desc = "Fixed issues where items behaved like taunting ghosts. Should be much smoother now.",
+    TextSize = 14
+})
+
+WhatsNewTab:Paragraph({
+    Title = "UI Responsiveness",
+    Desc = "Interface responds quicker and stops acting like it needs a nap. Toggles are snappy and behave themselves.",
+    TextSize = 14
+})
+
+WhatsNewTab:Paragraph({
+    Title = "Memory Leak Fixes",
+    Desc = "Script used to hoard RAM/.",
+    TextSize = 14
+})
+
+WhatsNewTab:Space()
+
+WhatsNewTab:Section({
+    Title = "Coming Soon",
+    TextSize = 18,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
+
+WhatsNewTab:Paragraph({
+    Title = "Automation Spree",
+    Desc = "SBR stuff, auto-racing, and more are in the oven. Might ruin your social life.",
+    TextSize = 14
+})
+
+WhatsNewTab:Space()
+
+WhatsNewTab:Paragraph({
+    Title = "Build 1.6.66 | Released: 2026",
+    Desc = "If you’re not on this version, update. I’m not saving people who cling to old clients.",
+    TextSize = 12,
+    TextTransparency = 0.4
+})
 local FarmingTab = Window:Tab({ Title = "Item Farming", Icon = "skull" })
 local StandFarmTab = Window:Tab({ Title = "Stand Farm", Icon = "sword" })
 local QuestTab = Window:Tab({ Title = "Quest", Icon = "list" })
@@ -967,45 +1137,53 @@ local function safePlaceFarm()
         end
         
         travelToInstant(safePlacePosition)
-        wait(0.5)
+        wait(0.3)
         
-        local collectedAny = false
-        while safePlaceFarmOn do
-            local v = findLuckyArrow() or findNearestItem(selectedFarmItems)
-            if not v then break end
-            
-            collectedAny = true
+        local v = findLuckyArrow() or findNearestItem(selectedFarmItems)
+        
+        if not v then
+            wait(0.5)
+            continue
+        end
+        
+        while safePlaceFarmOn and v do
             local itemPart = v:FindFirstChildOfClass("MeshPart") or v:FindFirstChildOfClass("Part")
             local proxPrompt = v:FindFirstChild("ProximityPrompt")
             
-            if instantPickup then
+            if not itemPart or not proxPrompt then break end
+            
+            local itemName = proxPrompt.ObjectText
+            if (items[itemName] or 0) >= (maxLimits[itemName] or math.huge) then
+                break
+            end
+            
+            if instantPickup and travelMethod == "Instant" then
                 instantTravelTo(itemPart)
-                wait(1)
-                checkAndSellMax()
-                fireproximityprompt(proxPrompt, 0, true)
+                wait(0.3)
             else
                 travelTo(itemPart)
-                wait(0.2)
-                local hrp = player.Character.HumanoidRootPart
-                if (itemPart.Position - hrp.Position).Magnitude < 5 then
-                    checkAndSellMax()
-                    fireproximityprompt(proxPrompt, 4)
-                    wait(0.1)
-                    if v:IsDescendantOf(game.Workspace) then
-                        fireproximityprompt(proxPrompt, 4)
-                    end
-                end
+                wait(0.3)
             end
+            
             checkAndSellMax()
+            
+            for i = 1, 3 do
+                fireproximityprompt(proxPrompt, 0, true)
+                wait(0.1)
+            end
+            
             wait(0.2)
-        end
-        
-        if collectedAny then
-            wait(0.5)
+            checkAndSellMax()
+            
             travelToInstant(safePlacePosition)
+            wait(0.6)
+            
+            v = findLuckyArrow() or findNearestItem(selectedFarmItems)
+            
+            wait(0.6)
         end
         
-        wait(1)
+        wait(0.5)
     end
 end
 local function afkFarm()
@@ -2025,15 +2203,12 @@ MiscTab:Slider({
         
         if not player.Character then return end
         
-        -- Store the speed in global scope
         getgenv().CustomWalkSpeed = value
         
-        -- Disconnect old connection if exists
         if getgenv().WalkspeedConnection then
             getgenv().WalkspeedConnection:Disconnect()
         end
         
-        -- Use RunService to maintain the speed without detection
         getgenv().WalkspeedConnection = game:GetService("RunService").RenderStepped:Connect(function()
             local char = player.Character
             if not char or not char.Parent then
@@ -2046,7 +2221,6 @@ MiscTab:Slider({
             end
         end)
         
-        -- Handle character respawn
         if getgenv().WalkspeedCharConnection then
             getgenv().WalkspeedCharConnection:Disconnect()
         end
@@ -2060,22 +2234,84 @@ MiscTab:Slider({
             end
         end)
         
-        notify("YBA Script", "Walkspeed set to: " .. value)
+        local lastSpeedNotify = getgenv().LastSpeedNotify or 0
+        local currentTime = tick()
+        if currentTime - lastSpeedNotify >= 2 then
+            getgenv().LastSpeedNotify = currentTime
+            notify("YBA Script", "Walkspeed set to: " .. value)
+        end
+    end
+})
+MiscTab:Input({
+    Flag = "CustomSpeedInput",
+    Title = "Custom Speed Input",
+    Placeholder = "Enter speed (1-5000)...",
+    Callback = function(value)
+        local speed = tonumber(value)
+        if not speed then
+            notify("YBA Script", "Invalid speed! Please enter a number.")
+            return
+        end
+        
+        speed = math.clamp(speed, 1, 5000)
+        
+        local player = game.Players.LocalPlayer
+        if not player.Character then 
+            notify("YBA Script", "Character not loaded!")
+            return 
+        end
+        
+        getgenv().CustomWalkSpeed = speed
+        
+        if getgenv().WalkspeedConnection then
+            getgenv().WalkspeedConnection:Disconnect()
+        end
+        
+        getgenv().WalkspeedConnection = game:GetService("RunService").RenderStepped:Connect(function()
+            local char = player.Character
+            if not char or not char.Parent then
+                return
+            end
+            
+            local hum = char:FindFirstChildWhichIsA("Humanoid")
+            if hum then
+                hum.WalkSpeed = getgenv().CustomWalkSpeed
+            end
+        end)
+        
+        if getgenv().WalkspeedCharConnection then
+            getgenv().WalkspeedCharConnection:Disconnect()
+        end
+        
+        getgenv().WalkspeedCharConnection = player.CharacterAdded:Connect(function(newChar)
+            if getgenv().CustomWalkSpeed and getgenv().CustomWalkSpeed > 0 then
+                local newHum = newChar:WaitForChild("Humanoid", 5)
+                if newHum then
+                    newHum.WalkSpeed = getgenv().CustomWalkSpeed
+                end
+            end
+        end)
+        
+        pcall(function()
+            local slider = MiscTab:FindFirstChild("Speed")
+            if slider and slider.Set then
+                slider:Set(math.min(speed, 200))
+            end
+        end)
+        
+        notify("YBA Script", "Custom walkspeed set to: " .. speed)
     end
 })
 MiscTab:Button({
     Title = "Reset Walkspeed",
     Callback = function()
-        -- Reset the speed to default
         getgenv().CustomWalkSpeed = 16
         
-        -- Disconnect old connection if exists
         if getgenv().WalkspeedConnection then
             getgenv().WalkspeedConnection:Disconnect()
             getgenv().WalkspeedConnection = nil
         end
         
-        -- Reset the current humanoid's walkspeed if character exists
         local player = game.Players.LocalPlayer
         if player.Character then
             local hum = player.Character:FindFirstChildWhichIsA("Humanoid")
@@ -3370,6 +3606,7 @@ ConfigTab:Dropdown({
     Flag = "ThemeChanger",
     Title = "Theme Changer",
     Values = {"Dark", "Light", "Rose", "Sky", "Plant", "Red", "Indigo", "Amber", "Violet", "Emerald", "Midnight", "Crimson", "MonokaiPro", "CottonCandy", "Rainbow", "AzuresTheme", "MethionGradient"},
+    SearchBarEnabled = true,
     Value = "MethionGradient",
     Callback = function(theme)
         pcall(function()
@@ -5666,6 +5903,194 @@ QuestFarmSection:Input({
 })
 
 QuestFarmSection:Space()
+QuestFarmSection:Space()
+QuestFarmSection:Section({
+    Title = "Auto Skill",
+})
+
+getgenv().AutoSkillEnabled = false
+getgenv().AutoSkillKeys = {Enum.KeyCode.R}
+getgenv().AutoSkillDelay = 0.1
+getgenv().AutoSkillConnections = {}
+
+local function stopAutoSkill()
+    for _, conn in pairs(getgenv().AutoSkillConnections) do
+        if conn then
+            pcall(function() conn:Disconnect() end)
+        end
+    end
+    getgenv().AutoSkillConnections = {}
+end
+
+local function startAutoSkill()
+    local player = game.Players.LocalPlayer
+    local RunService = game:GetService("RunService")
+    local VirtualInputManager = game:GetService("VirtualInputManager")
+    
+    stopAutoSkill()
+    
+    local skillConn = RunService.RenderStepped:Connect(function()
+        if not getgenv().AutoSkillEnabled then return end
+        if #getgenv().AutoSkillKeys == 0 then return end
+        
+        local character = player.Character
+        if not character then return end
+        
+        local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+        if not humanoid or humanoid.Health <= 0 then return end
+        
+        for _, keyCode in ipairs(getgenv().AutoSkillKeys) do
+            VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+        end
+        
+        task.wait(getgenv().AutoSkillDelay)
+        
+        for _, keyCode in ipairs(getgenv().AutoSkillKeys) do
+            VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+        end
+    end)
+    
+    table.insert(getgenv().AutoSkillConnections, skillConn)
+end
+
+QuestFarmSection:Dropdown({
+    Flag = "AutoSkillKeys",
+    Title = "Skill Keys",
+    Values = {"E", "R", "T", "Y", "F", "G", "H", "Z", "X", "C", "V", "B", "N", "M", "Q", "L"},
+    Multi = true,
+    Callback = function(selected)
+        local keyMap = {
+            ["E"] = Enum.KeyCode.E, ["R"] = Enum.KeyCode.R, ["T"] = Enum.KeyCode.T,
+            ["Y"] = Enum.KeyCode.Y, ["F"] = Enum.KeyCode.F, ["G"] = Enum.KeyCode.G,
+            ["H"] = Enum.KeyCode.H, ["Z"] = Enum.KeyCode.Z, ["X"] = Enum.KeyCode.X,
+            ["C"] = Enum.KeyCode.C, ["V"] = Enum.KeyCode.V, ["B"] = Enum.KeyCode.B,
+            ["N"] = Enum.KeyCode.N, ["M"] = Enum.KeyCode.M, ["Q"] = Enum.KeyCode.Q,
+            ["L"] = Enum.KeyCode.L
+        }
+        
+        getgenv().AutoSkillKeys = {}
+        for _, keyName in ipairs(selected) do
+            local keyCode = keyMap[keyName]
+            if keyCode then
+                table.insert(getgenv().AutoSkillKeys, keyCode)
+            end
+        end
+        
+        local keyNames = {}
+        for _, keyCode in ipairs(getgenv().AutoSkillKeys) do
+            table.insert(keyNames, keyCode.Name)
+        end
+        
+        if #keyNames > 0 then
+            notify("YBA Script", "Auto Skill keys: " .. table.concat(keyNames, ", "))
+        else
+            notify("YBA Script", "No keys selected! Auto Skill will not work.")
+        end
+        
+        if getgenv().AutoSkillEnabled then
+            stopAutoSkill()
+            if #getgenv().AutoSkillKeys > 0 then
+                startAutoSkill()
+            else
+                getgenv().AutoSkillEnabled = false
+                pcall(function()
+                    local toggle = QuestFarmSection:FindFirstChild("AutoSkillToggle")
+                    if toggle and toggle.Set then
+                        toggle:Set(false)
+                    end
+                end)
+            end
+        end
+    end
+})
+
+QuestFarmSection:Slider({
+    Flag = "AutoSkillDelay",
+    Title = "Skill Spam Delay",
+    Step = 0.01,
+    Value = { Min = 0.01, Max = 1.0, Default = 0.1 },
+    Callback = function(value)
+        getgenv().AutoSkillDelay = value
+    end
+})
+
+QuestFarmSection:Toggle({
+    Flag = "AutoSkillToggle",
+    Title = "Enable Auto Skill",
+    Default = false,
+    Callback = function(value)
+        getgenv().AutoSkillEnabled = value
+        
+        if value then
+            if #getgenv().AutoSkillKeys == 0 then
+                notify("YBA Script", "ERROR: No keys selected! Please select at least one key.")
+                getgenv().AutoSkillEnabled = false
+                task.delay(0.1, function()
+                    pcall(function()
+                        local toggle = QuestFarmSection:FindFirstChild("AutoSkillToggle")
+                        if toggle and toggle.Set then
+                            toggle:Set(false)
+                        end
+                    end)
+                end)
+                return
+            end
+            
+            local keyNames = {}
+            for _, keyCode in ipairs(getgenv().AutoSkillKeys) do
+                table.insert(keyNames, keyCode.Name)
+            end
+            
+            notify("YBA Script", "Auto Skill enabled! Keys: " .. table.concat(keyNames, ", "))
+            startAutoSkill()
+        else
+            notify("YBA Script", "Auto Skill disabled.")
+            stopAutoSkill()
+        end
+    end
+})
+
+QuestFarmSection:Button({
+    Title = "Clear All Skill Keys",
+    Callback = function()
+        getgenv().AutoSkillKeys = {}
+        
+        if getgenv().AutoSkillEnabled then
+            stopAutoSkill()
+            getgenv().AutoSkillEnabled = false
+            
+            pcall(function()
+                local toggle = QuestFarmSection:FindFirstChild("AutoSkillToggle")
+                if toggle and toggle.Set then
+                    toggle:Set(false)
+                end
+            end)
+        end
+        
+        pcall(function()
+            local dropdown = QuestFarmSection:FindFirstChild("AutoSkillKeys")
+            if dropdown and dropdown.Set then
+                dropdown:Set({})
+            end
+        end)
+        
+        notify("YBA Script", "All skill keys cleared! Select new keys to use Auto Skill.")
+    end
+})
+
+game.Players.LocalPlayer.CharacterAdded:Connect(function()
+    if getgenv().AutoSkillEnabled and #getgenv().AutoSkillKeys > 0 then
+        task.wait(1)
+        stopAutoSkill()
+        startAutoSkill()
+    end
+end)
+
+game:GetService("CoreGui").ChildRemoved:Connect(function(child)
+    if child.Name:find("WindUI") or child.Name:find("vanta") then
+        stopAutoSkill()
+    end
+end)
 
 getgenv().QuestMethod = "With Stand"
 
@@ -5930,31 +6355,10 @@ QuestFarmSection:Toggle({
                     local questName = getgenv().SelectedQuest
                     
                     if getgenv().QuestMethod == "With Stand" then
-                        if playerLevel < 3 then
-                            if HasStand() then
-                                notify("YBA Script", "Level " .. playerLevel .. ": Removing stand to farm faster...")
-                                local roka = GetPlayer().Backpack:FindFirstChild("Rokakaka") or GetCharacter():FindFirstChild("Rokakaka")
-                                if roka then
-                                    local humanoid = GetCharacter():FindFirstChildWhichIsA("Humanoid")
-                                    if humanoid then
-                                        humanoid:EquipTool(roka)
-                                        task.wait(0.5)
-                                        local remote = GetCharacter():FindFirstChild("RemoteEvent")
-                                        if remote then
-                                            remote:FireServer("UseItem", roka)
-                                        end
-                                        for i = 1, 10 do
-                                            game:GetService("VirtualInputManager"):SendMouseButtonEvent(0, 8, 0, true, nil, 1)
-                                            task.wait(0.1)
-                                        end
-                                    end
-                                end
-                                GetPlayer().CharacterAdded:Wait()
-                                task.wait(1)
-                            end
-                            EquipStand()
-                            
-                        elseif playerLevel >= 3 and not HasStand() then
+    if playerLevel < 3 then
+        EquipStand()
+        
+    elseif playerLevel >= 3 and not HasStand() then
                             local success = CollectRokaArrow()
                             if not success then
                                 
@@ -7274,7 +7678,6 @@ do
     GameSection:Button({
         Title = "Server Hop",
         Callback = function()
-            -- Server hop logic here if you have it
             notify("YBA Script", "Server hop triggered!")
         end
     })
@@ -7282,29 +7685,24 @@ end
 
 LoadQuestFeatures()
 local bypassSuccess, bypassError = pcall(function()
-    local oldMagnitude = hookmetamethod(Vector3.new(), "__index", newcclosure(function(self, index)
-        local CallingScript = tostring(getcallingscript())
-        if not checkcaller() and index == "magnitude" and CallingScript == "ItemSpawn" then
-            return 0
-        end
-        return oldMagnitude(self, index)
-    end))
-    
-    local UzuKeeIsRetardedAndDoesntKnowHowToMakeAnAntiCheatOnTheServerSideAlsoVexStfuIKnowTheCodeIsBadYouDontNeedToTellMe = "  ___XP DE KEY"
-    local oldNc = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
-        local Method = getnamecallmethod()
-        local Args = {...}
-        if not checkcaller() and rawequal(self.Name, "Returner") and rawequal(Args[1], "idklolbrah2de") then
-            return UzuKeeIsRetardedAndDoesntKnowHowToMakeAnAntiCheatOnTheServerSideAlsoVexStfuIKnowTheCodeIsBadYouDontNeedToTellMe
-        end
-        return oldNc(self, ...)
-    end))
-    
-    getgenv().oldMagnitude = oldMagnitude
-    getgenv().oldNc = oldNc
-    
-    wait(0.1)
-end)
+            local OldIndex = nil
+            OldIndex = hookmetamethod(Vector3.new(), '__index', newcclosure(function(Vector3Instance, Vector3Index)
+                local CallingScriptName = tostring(getcallingscript())
+                return not checkcaller() and (Vector3Index == 'magnitude' and CallingScriptName == 'ItemSpawn') and 0 or OldIndex(Vector3Instance, Vector3Index)
+            end))
+
+            local XP_Key = '  ___XP DE KEY'
+            local OldNameCall = nil
+            OldNameCall = hookmetamethod(game, '__namecall', newcclosure(function(NameCallSelf, ...)
+                if checkcaller() or not (rawequal(NameCallSelf.Name, 'Returner') and rawequal(({...})[1], 'idklolbrah2de')) then
+                    return OldNameCall(NameCallSelf, ...)
+                else
+                    return XP_Key
+                end
+            end))
+            
+            wait(0.1)
+        end)
 do
     Window:Tag({
         Title = bypassSuccess and "Supported" or "Unsupported",
