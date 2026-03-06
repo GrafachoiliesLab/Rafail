@@ -5955,6 +5955,7 @@ end
 QuestFarmSection:Dropdown({
     Flag = "AutoSkillKeys",
     Title = "Skill Keys",
+    Locked = true,
     Values = {"E", "R", "T", "Y", "F", "G", "H", "Z", "X", "C", "V", "B", "N", "M", "Q", "L"},
     Multi = true,
     Callback = function(selected)
