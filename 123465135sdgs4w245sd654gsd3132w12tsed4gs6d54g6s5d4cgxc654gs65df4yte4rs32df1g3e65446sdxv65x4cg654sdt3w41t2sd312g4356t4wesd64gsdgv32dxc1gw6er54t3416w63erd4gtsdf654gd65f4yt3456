@@ -6006,9 +6006,9 @@ QuestFarmSection:Dropdown({
 
 QuestFarmSection:Slider({
     Flag = "AutoSkillDelay",
-    Title = "Skill Spam Delay",
+    Title = "Hold Key",
     Step = 0.01,
-    Value = { Min = 0.01, Max = 1.0, Default = 0.1 },
+    Value = { Min = 0.01, Max = 1.0, Default = 1 },
     Callback = function(value)
         getgenv().AutoSkillDelay = value
     end
@@ -6634,7 +6634,7 @@ QuestTab:Paragraph({
 QuestFarmSection:Space()
 
 local AutoPrestigeSection = QuestTab:Section({ 
-    Title = "Auto Prestige 3",
+    Title = "Auto Story Line",
     TextSize = 18,
     FontWeight = Enum.FontWeight.SemiBold,
 })
