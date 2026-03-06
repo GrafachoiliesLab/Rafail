@@ -6016,6 +6016,7 @@ QuestFarmSection:Slider({
 QuestFarmSection:Toggle({
     Flag = "AutoSkillToggle",
     Title = "Enable Auto Skill",
+    Locked = true,
     Default = false,
     Callback = function(value)
         getgenv().AutoSkillEnabled = value
