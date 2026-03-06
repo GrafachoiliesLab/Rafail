@@ -5757,7 +5757,6 @@ end
         ["William Zeppeli [Lvl. 25+]"] = { Enemy = "Vampire" },
         ["Doppio [Lvl. 30+]"] = { Enemy = "Dio" },
         ["Dio [Lvl. 35+]"] = { Enemy = "Jotaro" },
-        ["Jotaro"] = { Enemy = "Heaven Ascension Dio" },
     }
 
     local function ParseQuests()
