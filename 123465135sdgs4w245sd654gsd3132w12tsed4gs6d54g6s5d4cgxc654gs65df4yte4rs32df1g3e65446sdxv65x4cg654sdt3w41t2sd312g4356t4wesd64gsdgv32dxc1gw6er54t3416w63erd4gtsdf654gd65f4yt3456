@@ -398,7 +398,7 @@ WhatsNewTab:Section({
 
 WhatsNewTab:Paragraph({
     Title = "Paranoid Farmer",
-    Desc = "Teleports you somewhere cozy to collect loot while NPCs cry in the distance. Not invincible, just smugly safe.",
+    Desc = "Teleports you somewhere cozy to collect loot while Players cant find you.",
     TextSize = 14
 })
 
