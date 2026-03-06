@@ -329,7 +329,7 @@ AboutTab:Paragraph({
 
 AboutTab:Paragraph({
     Title = "@Findingwaysto**** — Dev/Helper (Retired)",
-    Desc = "Name redacted because drama. If you know, you know; if you don’t, good for you.",
+    Desc = "Name redacted because Erm. If you know, you know; if you don’t, good for you.",
     TextSize = 14
 })
 
@@ -364,7 +364,7 @@ WhatsNewTab:Section({
 WhatsNewTab:Paragraph({
     Animate = true,
     Title = "The 'It Actually Does The Thing' Update",
-    Desc = "We fixed the dumb stuff, tightened the engines, and stopped the client from staging a revolt. It’s faster, less dramatic, and more annoying to enemies.",
+    Desc = "We fixed the dumb stuff, tightened the engines, and stopped the client from staging a revolt. It’s faster, less Idiotic, and more annoying to enemies.",
     TextSize = 15
 })
 
@@ -404,7 +404,7 @@ WhatsNewTab:Paragraph({
 
 WhatsNewTab:Paragraph({
     Title = "Smart Evasion",
-    Desc = "Avoids choke points and drama. The script has better survival instincts than some players I’ve met.",
+    Desc = "Avoids choke points and Yk. The script has better survival instincts than some players I’ve met.",
     TextSize = 14
 })
 
