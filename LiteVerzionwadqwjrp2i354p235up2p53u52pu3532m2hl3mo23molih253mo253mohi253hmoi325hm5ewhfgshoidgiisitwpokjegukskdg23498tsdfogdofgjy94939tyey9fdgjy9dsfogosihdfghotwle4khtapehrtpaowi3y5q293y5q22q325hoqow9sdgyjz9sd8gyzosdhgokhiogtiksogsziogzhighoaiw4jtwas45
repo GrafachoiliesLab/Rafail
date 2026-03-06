@@ -6,13 +6,13 @@ do
     if ok then
         WindUI = result
     else
-        WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/weatherwess-lgtm/Azure/refs/heads/main/Gofile"))()
+        WindUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/induchSandWitch/Methion/refs/heads/main/MethionUi"))()
     end
 end
 WindUI:Popup({
-    Title = "Welcome",
+    Title = "Welcome to Light Version",
     Icon = "bird",
-    Content = "This Version is not yet finished we just have to drop it a little sooner for personal reason.",
+    Content = "This is the Light version. It is optimized for better compatibility and lower executor requirements. The Maximum version contains stronger features but requires a high-UNC executor.",
     Buttons = {
         {
             Title = "Ok",
@@ -24,12 +24,13 @@ setclipboard("https://discord.gg/cgcFqpfRke")
 loadstring(game:HttpGet("https://raw.githubusercontent.com/weatherwess-lgtm/FlyToggle/refs/heads/main/Clipboard"))()
 local Window = WindUI:CreateWindow({
     Title = "YBA Script",
-    Icon = "cat",
+    Icon = "rbxthumb://type=Asset&id=92343328137209&w=150&h=150",
     Author = "by Azure",
     Folder = "yba_script",
+    IconSize = 70,
     NewElements = true,
     HideSearchBar = false,
-    Background = "rbxthumb://type=Asset&id=14103269909&w=150&h=150",
+    Background = "rbxthumb://type=Asset&id=106644461650775&w=150&h=150",
     BackgroundImageTransparency = 0.8,
     Transparent = true,
     OpenButton = {
@@ -49,7 +50,14 @@ do
     Window:Tag({
         Title = "V1.6.65",
         Icon = "github",
-        Color = Color3.fromHex("#8000FF")
+        Color = Color3.fromHex("#000000")
+    })
+end
+do
+    Window:Tag({
+        Title = "Light",
+        Icon = "check",
+        Color = Color3.fromRGB(200,200,200)
     })
 end
 Window:SetToggleKey(Enum.KeyCode.K)
@@ -345,7 +353,6 @@ local TrollingTab = Window:Tab({ Title = "Trolling", Icon = "smile" })
 local SettingsTab = Window:Tab({ Title = "Settings", Icon = "settings" })
 local player = game.Players.LocalPlayer
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
 local topGui = Instance.new("ScreenGui")
 local function notify(title, message)
 title = title or "YBA Script"
@@ -705,58 +712,63 @@ end
     noclipEnabled = false
 end
 local studMultiplier = 1
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local virtualAnchor = Instance.new("Part")
+virtualAnchor.Anchored = true
+virtualAnchor.CanCollide = false
+virtualAnchor.Transparency = 1
+virtualAnchor.Size = Vector3.new(1, 1, 1)
+virtualAnchor.Parent = workspace.Terrain
+
+local currentConnection = nil
 local tweenMultiplier = 1
-local function travelToStud(target)
-    if not player.Character or not player.Character.HumanoidRootPart then return end
-    local hrp = player.Character.HumanoidRootPart
-    local targetPos = typeof(target) == "Vector3" and target or target.Position
-    local vector = targetPos - hrp.Position
-    local length = vector.Magnitude
-    local step_size = (afkFarmOn and 5 or 25) * studMultiplier
-    local num_tp = math.ceil(length / step_size)
-    if num_tp < 1 then num_tp = 1 end
-    for i = 1, num_tp do
-        if not player.Character or not player.Character.HumanoidRootPart then return end
-        hrp.CFrame = hrp.CFrame + vector / num_tp
-        wait(tpDelay)
-    end
-end
+
 local function travelToTween(target)
-if not player.Character or not player.Character.HumanoidRootPart then return end
-local hrp = player.Character.HumanoidRootPart
-local targetPos = typeof(target) == "Vector3" and target or target.Position
-local distance = (targetPos - hrp.Position).Magnitude
-local effectiveSpeed = 200 * tweenMultiplier
-local time = distance / effectiveSpeed
-local tweenInfo = TweenInfo.new(time, Enum.EasingStyle.Linear)
-local tween = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(targetPos)})
+    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return end
+    
+    local hrp = player.Character.HumanoidRootPart
+    local humanoid = player.Character:FindFirstChild("Humanoid")
+    local targetPos = typeof(target) == "Vector3" and target or target.Position
+    
+    if currentConnection then
+        currentConnection:Disconnect()
+        currentConnection = nil
+    end
+    
+    virtualAnchor.CFrame = hrp.CFrame
+    
+    local distance = (targetPos - hrp.Position).Magnitude
+    local effectiveSpeed = 200 * tweenMultiplier
+    local time = math.max(distance / effectiveSpeed, 0.1)
+    
+    local tweenInfo = TweenInfo.new(time, Enum.EasingStyle.Linear)
+    local targetCFrame = CFrame.new(targetPos) * CFrame.Angles(0, math.atan2(
+        targetPos.X - hrp.Position.X, 
+        targetPos.Z - hrp.Position.Z
+    ), 0)
+    
+    local tween = TweenService:Create(virtualAnchor, tweenInfo, {CFrame = targetCFrame})
+    
+    currentConnection = RunService.Heartbeat:Connect(function()
+        if hrp and virtualAnchor then
+            hrp.CFrame = virtualAnchor.CFrame
+            hrp.AssemblyLinearVelocity = Vector3.zero
+            hrp.AssemblyAngularVelocity = Vector3.zero
+        end
+    end)
+    
     tween:Play()
     tween.Completed:Wait()
-end
-local function travelToInstant(target)
-    if not player or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-        return
+    
+    if currentConnection then
+        currentConnection:Disconnect()
+        currentConnection = nil
     end
-
-    local hrp = player.Character.HumanoidRootPart
-    local targetCFrame
-
-    if typeof(target) == "Vector3" then
-        targetCFrame = CFrame.new(target)
-    elseif typeof(target) == "CFrame" then
-        targetCFrame = target
-    elseif typeof(target) == "Instance" and target.Position then
-        targetCFrame = CFrame.new(target.Position)
-    else
-        return
-    end
-
-    hrp.CFrame = targetCFrame
-
-    if hrp.AssemblyLinearVelocity then
-        hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-    else
-        hrp.Velocity = Vector3.new(0, 0, 0)
+    
+    if hrp then
+        hrp.CFrame = targetCFrame
     end
 end
 local travelMethod = "Stud"
@@ -2827,8 +2839,8 @@ ConfigTab:Space()
 ConfigTab:Dropdown({
     Flag = "ThemeChanger",
     Title = "Theme Changer",
-    Values = {"Dark", "Light", "Rose", "Sky", "Plant", "Red", "Indigo", "Amber", "Violet", "Emerald", "Midnight", "Crimson", "Monokai Pro", "Cotton Candy", "Rainbow"},
-    Value = "Sky",
+    Values = {"Dark", "Light", "Rose", "Sky", "Plant", "Red", "Indigo", "Amber", "Violet", "Emerald", "Midnight", "Crimson", "MonokaiPro", "CottonCandy", "Rainbow", "AzuresTheme", "MethionGradient"},
+    Value = "MethionGradient",
     Callback = function(theme)
         pcall(function()
             WindUI:SetTheme(theme)
