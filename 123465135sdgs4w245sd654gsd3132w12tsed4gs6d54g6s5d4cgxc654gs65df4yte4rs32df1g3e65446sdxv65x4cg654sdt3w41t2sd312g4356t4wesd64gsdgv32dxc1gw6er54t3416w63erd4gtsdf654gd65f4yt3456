@@ -1048,7 +1048,11 @@ local tpDelay = 0.05
 local originalTpDelay = 0.05
 local safePlaceFarmOn = false
 local safePlaceCoroutine = nil
-local safePlacePosition = Vector3.new(47.261887, -33.486183, 90.047981)
+local safePlacePosition = Vector3.new(-151.020264, 274.199310, 280.406799)
+getgenv().defaultSafePlacePosition = Vector3.new(47.261887, -33.486183, 90.047981)
+getgenv().newSafePlacePosition = Vector3.new(-151.020264, 274.199310, 280.406799)
+getgenv().savedCoordinates = {}
+getgenv().currentCoordSelection = "New"
 local function findNearestItem(selectedItems)
     updateItems()
     local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
@@ -1175,6 +1179,7 @@ local function safePlaceFarm()
             wait(0.2)
             checkAndSellMax()
             
+            -- ADDED: Wait 1 second before returning to safe place to avoid detection
             wait(0.5)
             
             travelToInstant(safePlacePosition)
@@ -1862,6 +1867,81 @@ AdjustTab:Slider({
     Callback = function(value)
         tpDelay = value
     end
+})
+AdjustTab:Space()
+AdjustTab:Section({
+    Title = "Safe Place Position"
+})
+
+-- Coordinate Input
+AdjustTab:Input({
+    Flag = "SafePlaceCoordsInput",
+    Title = "Enter Coordinates (X, Y, Z)",
+    Placeholder = "e.g., 47.261887, -33.486183, 90.047981",
+    Callback = function(value)
+        if value and value ~= "" then
+            local x, y, z = value:match("([-%d%.]+)%s*,%s*([-%d%.]+)%s*,%s*([-%d%.]+)")
+            if x and y and z then
+                safePlacePosition = Vector3.new(tonumber(x), tonumber(y), tonumber(z))
+                notify("YBA Script", "Coordinates updated to: " .. tostring(safePlacePosition))
+            else
+                notify("YBA Script", "Invalid format! Use: X, Y, Z")
+            end
+        end
+    end
+})
+
+-- Update to Current Position Button
+AdjustTab:Button({
+    Title = "Update Coords (Current Position)",
+    Callback = function()
+        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local pos = hrp.Position
+            safePlacePosition = Vector3.new(pos.X, pos.Y, pos.Z)
+            notify("YBA Script", "Set to current position: " .. string.format("%.2f, %.2f, %.2f", pos.X, pos.Y, pos.Z))
+        else
+            notify("YBA Script", "Character not loaded!")
+        end
+    end
+})
+
+-- Coordinates Saver Dropdown
+AdjustTab:Dropdown({
+    Flag = "CoordinatesSaver",
+    Title = "Coordinates Saver",
+    Values = {"Default", "New"},
+    Value = "New",
+    Callback = function(selected)
+        if selected == "Default" then
+            safePlacePosition = defaultSafePlacePosition
+            notify("YBA Script", "Loaded Default coordinates")
+        elseif selected == "New" then
+            safePlacePosition = newSafePlacePosition
+            notify("YBA Script", "Loaded New coordinates")
+        end
+    end
+})
+
+-- Save Current Position Button
+AdjustTab:Button({
+    Title = "Save Coordinates",
+    Callback = function()
+        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local pos = hrp.Position
+            notify("YBA Script", "Current position: " .. string.format("%.6f, %.6f, %.6f", pos.X, pos.Y, pos.Z) .. " (Copy this to input above)")
+        else
+            notify("YBA Script", "Character not loaded!")
+        end
+    end
+})
+
+-- Current Position Display (updates when you click the button above)
+AdjustTab:Paragraph({
+    Title = "Current Safe Place",
+    Desc = "Check notifications for current coordinates when you click Save Coordinates",
+    TextSize = 14
 })
 local antiAFKToggle = MiscTab:Toggle({
     Flag = "AntiAFK",
@@ -7692,19 +7772,22 @@ end
 
 LoadQuestFeatures()
 local bypassSuccess, bypassError = pcall(function()
+    -- CONFIGURATION
     local CONFIG = {
-        ScanInterval = 1.0,
-        MaxItems = 100,
-        Debug = true,
-        DebounceTime = 0.05
+        ScanInterval = 1.0,      -- Seconds between full scans
+        MaxItems = 100,          -- Max items to track
+        Debug = true,            -- Debug output
+        DebounceTime = 0.05      -- Seconds to wait before processing new spawn
     }
     
+    -- State
     local DetectedItems = {}
-    local ProcessedObjects = {}
+    local ProcessedObjects = {} -- Cache to prevent duplicates
     local LastScan = 0
     local IsScanning = false
     local Connections = {}
     
+    -- Safe cleanup
     local function Cleanup()
         for _, conn in pairs(Connections) do
             if conn then pcall(function() conn:Disconnect() end) end
@@ -7716,11 +7799,13 @@ local bypassSuccess, bypassError = pcall(function()
         if CONFIG.Debug then print('[YBA Bypass]', msg) end
     end
     
+    -- Item validation function
     local function IsValidItem(obj)
         if not obj or not obj:IsA('Instance') then return false end
-        if ProcessedObjects[obj] then return false end
+        if ProcessedObjects[obj] then return false end -- Already processed
         
         local name = obj.Name:lower()
+        -- Expanded patterns for YBA specifically
         return name:find('item') or name:find('drop') or name:find('loot') or 
                name:find('coin') or name:find('chest') or name:find('money') or
                name:find('roka') or name:find('arrow') or name:find('spawn') or
@@ -7728,6 +7813,7 @@ local bypassSuccess, bypassError = pcall(function()
                obj:FindFirstChild('ItemPrompt')
     end
     
+    -- Process detected item
     local function ProcessItem(obj)
         if not IsValidItem(obj) then return end
         if #DetectedItems >= CONFIG.MaxItems then return end
@@ -7741,12 +7827,14 @@ local bypassSuccess, bypassError = pcall(function()
         
         log('New item detected: ' .. obj.Name)
         
+        -- Auto-clean when destroyed
         obj.Destroying:Once(function()
             ProcessedObjects[obj] = nil
             DetectedItems[obj.Name] = nil
         end)
     end
     
+    -- Method 1: Magnitude spoof (anti-distance check)
     local OldIndex
     OldIndex = hookmetamethod(Vector3.new(), '__index', newcclosure(function(self, key)
         if not checkcaller() and key == 'magnitude' then
@@ -7761,6 +7849,7 @@ local bypassSuccess, bypassError = pcall(function()
         return OldIndex(self, key)
     end))
     
+    -- Method 2: XP Key spoof
     local OldNameCall
     OldNameCall = hookmetamethod(game, '__namecall', newcclosure(function(self, ...)
         if not checkcaller() then
@@ -7772,7 +7861,9 @@ local bypassSuccess, bypassError = pcall(function()
         return OldNameCall(self, ...)
     end))
     
+    -- Method 3: DescendantAdded (catches nested spawns)
     table.insert(Connections, workspace.DescendantAdded:Connect(function(descendant)
+        -- Debounce to prevent spam processing
         task.delay(CONFIG.DebounceTime, function()
             if descendant and descendant.Parent then
                 ProcessItem(descendant)
@@ -7780,17 +7871,19 @@ local bypassSuccess, bypassError = pcall(function()
         end)
     end))
     
+    -- Method 4: Throttled full scan for existing items
     local function FullScan()
         if IsScanning or (tick() - LastScan) < CONFIG.ScanInterval then return end
         IsScanning = true
         
         task.defer(function()
             local count = 0
+            -- Use GetDescendants but with strict limits
             local descendants = workspace:GetDescendants()
-            local step = math.max(1, math.floor(#descendants / 100))
+            local step = math.max(1, math.floor(#descendants / 100)) -- Process in chunks
             
             for i = 1, #descendants, step do
-                if count >= 10 then break end
+                if count >= 10 then break end -- Max 10 new items per scan
                 local obj = descendants[i]
                 if IsValidItem(obj) then
                     ProcessItem(obj)
@@ -7804,14 +7897,17 @@ local bypassSuccess, bypassError = pcall(function()
         end)
     end
     
+    -- Periodic scan (every 3 seconds)
     task.spawn(function()
         while task.wait(3) do
             FullScan()
         end
     end)
     
+    -- Initial scan
     FullScan()
     
+    -- Global API
     getgenv().YBA_GetItems = function()
         local list = {}
         for name, data in pairs(DetectedItems) do
