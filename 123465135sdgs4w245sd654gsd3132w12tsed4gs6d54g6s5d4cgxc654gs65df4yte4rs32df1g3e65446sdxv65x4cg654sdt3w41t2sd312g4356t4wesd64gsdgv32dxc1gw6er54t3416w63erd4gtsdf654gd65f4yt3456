@@ -3701,48 +3701,80 @@ ConfigTab:Dropdown({
         notify("YBA Script", "Theme changed to " .. theme)
     end
 })
-ConfigTab:Space()
+-- Report Section
+ConfigTab:Section({
+    Title = "Report / Feedback",
+    TextSize = 20,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
 
-local webhookUIToggle = ConfigTab:Toggle({
-    Flag = "WebhookUI",
-    Title = "Open Webhook UI",
-    Default = false,
+ConfigTab:Paragraph({
+    Title = "Report Something",
+    Desc = "Report bugs, features that don't work, or suggest new features. We review all reports and will consider adding suggested features.",
+    TextSize = 14
+})
+
+local reportWebhook = "https://discord.com/api/webhooks/1479673229915455529/OmWvkYJe1i7o2-3kyNnXlbyFuLoHUA_rwo4kitLFCmqBr8tQRdooKkH-XJaPiXzYtrt5"
+
+ConfigTab:Input({
+    Flag = "ReportInput",
+    Title = "Report",
+    Placeholder = "Describe the issue or suggest a feature...",
     Callback = function(value)
-        if value then
-            local success, result = pcall(function()
-                return loadstring(game:HttpGet("https://raw.githubusercontent.com/horithedev/Bruh/refs/heads/main/Webhook"))()
+        if value and value ~= "" then
+            local success, err = pcall(function()
+                local HttpService = game:GetService("HttpService")
+                local data = {
+                    embeds = {{
+                        title = "Methion YBA Script - Report",
+                        description = value,
+                        color = 0xff0000,
+                        timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"),
+                        fields = {
+                            {
+                                name = "Username",
+                                value = game.Players.LocalPlayer.Name,
+                                inline = true
+                            },
+                            {
+                                name = "UserId",
+                                value = tostring(game.Players.LocalPlayer.UserId),
+                                inline = true
+                            },
+                            {
+                                name = "Executor",
+                                value = identifyexecutor() or "Unknown",
+                                inline = true
+                            }
+                        }
+                    }}
+                }
+                
+                local jsonData = HttpService:JSONEncode(data)
+                
+                local requestFunc = syn and syn.request or http_request or request or HttpPost
+                if requestFunc then
+                    requestFunc({
+                        Url = reportWebhook,
+                        Method = "POST",
+                        Headers = {
+                            ["Content-Type"] = "application/json"
+                        },
+                        Body = jsonData
+                    })
+                    notify("YBA Script", "Report sent successfully! Thank you for your feedback.")
+                else
+                    notify("YBA Script", "Failed to send report - executor not supported")
+                end
             end)
             
-            if success then
-                notify("YBA Script", "Webhook UI enabled!")
-            else
-                notify("YBA Script", "Failed to load Webhook UI: " .. tostring(result))
-                webhookUIToggle:Set(false)
+            if not success then
+                notify("YBA Script", "Error sending report: " .. tostring(err))
             end
-        else
-            pcall(function()
-                if getgenv().WebhookUICleanup then
-                    getgenv().WebhookUICleanup()
-                end
-            end)
-            
-            pcall(function()
-                local player = game.Players.LocalPlayer
-                if player and player.PlayerGui then
-                    local commonNames = {"WebhookUI", "WebhookGui", "Webhook", "BruhUI"}
-                    for _, name in pairs(commonNames) do
-                        local gui = player.PlayerGui:FindFirstChild(name)
-                        if gui then
-                            gui:Destroy()
-                        end
-                    end
-                end
-            end)
-            
-            notify("YBA Script", "Webhook UI disabled!")
         end
     end
 })
+
 ConfigTab:Space()
 ConfigTab:Keybind({
         Flag = "KeybindTest",
