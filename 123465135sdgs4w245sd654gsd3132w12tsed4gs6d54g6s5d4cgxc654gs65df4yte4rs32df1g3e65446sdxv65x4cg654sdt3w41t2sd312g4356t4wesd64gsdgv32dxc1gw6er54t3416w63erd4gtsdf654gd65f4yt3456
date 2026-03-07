@@ -1175,6 +1175,9 @@ local function safePlaceFarm()
             wait(0.2)
             checkAndSellMax()
             
+            -- ADDED: Wait 1 second before returning to safe place to avoid detection
+            wait(0.5)
+            
             travelToInstant(safePlacePosition)
             wait(0.6)
             
@@ -1454,11 +1457,15 @@ if instantPickupConnection then
         instantPickupConnection = nil
 end
 end
-local function instantTravelTo(target)
-if not player.Character or not player.Character.HumanoidRootPart then return end
-local hrp = player.Character.HumanoidRootPart
-local targetPos = typeof(target) == "Vector3" and target or target.Position
+local function instantTravelTo(target, waitTime)
+    if not player.Character or not player.Character.HumanoidRootPart then return end
+    local hrp = player.Character.HumanoidRootPart
+    local targetPos = typeof(target) == "Vector3" and target or target.Position
     hrp.CFrame = CFrame.new(targetPos + Vector3.new(0, 0.10, 0))
+    
+    if waitTime then
+        wait(waitTime)
+    end
 end
 local afkCameraOn = false
 local originalCameraType = nil
@@ -7686,24 +7693,166 @@ end
 
 LoadQuestFeatures()
 local bypassSuccess, bypassError = pcall(function()
-            local OldIndex = nil
-            OldIndex = hookmetamethod(Vector3.new(), '__index', newcclosure(function(Vector3Instance, Vector3Index)
-                local CallingScriptName = tostring(getcallingscript())
-                return not checkcaller() and (Vector3Index == 'magnitude' and CallingScriptName == 'ItemSpawn') and 0 or OldIndex(Vector3Instance, Vector3Index)
-            end))
-
-            local XP_Key = '  ___XP DE KEY'
-            local OldNameCall = nil
-            OldNameCall = hookmetamethod(game, '__namecall', newcclosure(function(NameCallSelf, ...)
-                if checkcaller() or not (rawequal(NameCallSelf.Name, 'Returner') and rawequal(({...})[1], 'idklolbrah2de')) then
-                    return OldNameCall(NameCallSelf, ...)
-                else
-                    return XP_Key
-                end
-            end))
-            
-            wait(0.1)
+    -- CONFIGURATION
+    local CONFIG = {
+        ScanInterval = 1.0,      -- Seconds between full scans
+        MaxItems = 100,          -- Max items to track
+        Debug = true,            -- Debug output
+        DebounceTime = 0.05      -- Seconds to wait before processing new spawn
+    }
+    
+    -- State
+    local DetectedItems = {}
+    local ProcessedObjects = {} -- Cache to prevent duplicates
+    local LastScan = 0
+    local IsScanning = false
+    local Connections = {}
+    
+    -- Safe cleanup
+    local function Cleanup()
+        for _, conn in pairs(Connections) do
+            if conn then pcall(function() conn:Disconnect() end) end
+        end
+        Connections = {}
+    end
+    
+    local function log(msg)
+        if CONFIG.Debug then print('[YBA Bypass]', msg) end
+    end
+    
+    -- Item validation function
+    local function IsValidItem(obj)
+        if not obj or not obj:IsA('Instance') then return false end
+        if ProcessedObjects[obj] then return false end -- Already processed
+        
+        local name = obj.Name:lower()
+        -- Expanded patterns for YBA specifically
+        return name:find('item') or name:find('drop') or name:find('loot') or 
+               name:find('coin') or name:find('chest') or name:find('money') or
+               name:find('roka') or name:find('arrow') or name:find('spawn') or
+               name:find('collectible') or obj:FindFirstChild('Pickup') or
+               obj:FindFirstChild('ItemPrompt')
+    end
+    
+    -- Process detected item
+    local function ProcessItem(obj)
+        if not IsValidItem(obj) then return end
+        if #DetectedItems >= CONFIG.MaxItems then return end
+        
+        ProcessedObjects[obj] = true
+        DetectedItems[obj.Name] = {
+            Object = obj,
+            Time = tick(),
+            Position = obj:IsA('BasePart') and obj.Position or nil
+        }
+        
+        log('New item detected: ' .. obj.Name)
+        
+        -- Auto-clean when destroyed
+        obj.Destroying:Once(function()
+            ProcessedObjects[obj] = nil
+            DetectedItems[obj.Name] = nil
         end)
+    end
+    
+    -- Method 1: Magnitude spoof (anti-distance check)
+    local OldIndex
+    OldIndex = hookmetamethod(Vector3.new(), '__index', newcclosure(function(self, key)
+        if not checkcaller() and key == 'magnitude' then
+            local script = getcallingscript()
+            if script then
+                local name = tostring(script)
+                if name:find('Item') or name:find('Spawn') or name:find('Drop') then
+                    return 0
+                end
+            end
+        end
+        return OldIndex(self, key)
+    end))
+    
+    -- Method 2: XP Key spoof
+    local OldNameCall
+    OldNameCall = hookmetamethod(game, '__namecall', newcclosure(function(self, ...)
+        if not checkcaller() then
+            local args = {...}
+            if self.Name == 'Returner' and args[1] == 'idklolbrah2de' then
+                return '  ___XP DE KEY'
+            end
+        end
+        return OldNameCall(self, ...)
+    end))
+    
+    -- Method 3: DescendantAdded (catches nested spawns)
+    table.insert(Connections, workspace.DescendantAdded:Connect(function(descendant)
+        -- Debounce to prevent spam processing
+        task.delay(CONFIG.DebounceTime, function()
+            if descendant and descendant.Parent then
+                ProcessItem(descendant)
+            end
+        end)
+    end))
+    
+    -- Method 4: Throttled full scan for existing items
+    local function FullScan()
+        if IsScanning or (tick() - LastScan) < CONFIG.ScanInterval then return end
+        IsScanning = true
+        
+        task.defer(function()
+            local count = 0
+            -- Use GetDescendants but with strict limits
+            local descendants = workspace:GetDescendants()
+            local step = math.max(1, math.floor(#descendants / 100)) -- Process in chunks
+            
+            for i = 1, #descendants, step do
+                if count >= 10 then break end -- Max 10 new items per scan
+                local obj = descendants[i]
+                if IsValidItem(obj) then
+                    ProcessItem(obj)
+                    count = count + 1
+                end
+            end
+            
+            LastScan = tick()
+            IsScanning = false
+            if count > 0 then log('Full scan found ' .. count .. ' items') end
+        end)
+    end
+    
+    -- Periodic scan (every 3 seconds)
+    task.spawn(function()
+        while task.wait(3) do
+            FullScan()
+        end
+    end)
+    
+    -- Initial scan
+    FullScan()
+    
+    -- Global API
+    getgenv().YBA_GetItems = function()
+        local list = {}
+        for name, data in pairs(DetectedItems) do
+            table.insert(list, {name = name, time = data.Time, obj = data.Object})
+        end
+        return list
+    end
+    
+    getgenv().YBA_ClearItems = function()
+        DetectedItems = {}
+        ProcessedObjects = {}
+    end
+    
+    getgenv().YBA_Stop = Cleanup
+    
+    log('Bypass loaded - nested spawn detection active')
+end)
+
+if not bypassSuccess then
+    warn('[YBA Bypass Error]:', tostring(bypassError))
+else
+    print('[YBA Bypass] Loaded successfully')
+end
+
 do
     Window:Tag({
         Title = bypassSuccess and "Supported" or "Unsupported",
