@@ -1175,7 +1175,6 @@ local function safePlaceFarm()
             wait(0.2)
             checkAndSellMax()
             
-            -- ADDED: Wait 1 second before returning to safe place to avoid detection
             wait(0.5)
             
             travelToInstant(safePlacePosition)
@@ -7693,22 +7692,19 @@ end
 
 LoadQuestFeatures()
 local bypassSuccess, bypassError = pcall(function()
-    -- CONFIGURATION
     local CONFIG = {
-        ScanInterval = 1.0,      -- Seconds between full scans
-        MaxItems = 100,          -- Max items to track
-        Debug = true,            -- Debug output
-        DebounceTime = 0.05      -- Seconds to wait before processing new spawn
+        ScanInterval = 1.0,
+        MaxItems = 100,
+        Debug = true,
+        DebounceTime = 0.05
     }
     
-    -- State
     local DetectedItems = {}
-    local ProcessedObjects = {} -- Cache to prevent duplicates
+    local ProcessedObjects = {}
     local LastScan = 0
     local IsScanning = false
     local Connections = {}
     
-    -- Safe cleanup
     local function Cleanup()
         for _, conn in pairs(Connections) do
             if conn then pcall(function() conn:Disconnect() end) end
@@ -7720,13 +7716,11 @@ local bypassSuccess, bypassError = pcall(function()
         if CONFIG.Debug then print('[YBA Bypass]', msg) end
     end
     
-    -- Item validation function
     local function IsValidItem(obj)
         if not obj or not obj:IsA('Instance') then return false end
-        if ProcessedObjects[obj] then return false end -- Already processed
+        if ProcessedObjects[obj] then return false end
         
         local name = obj.Name:lower()
-        -- Expanded patterns for YBA specifically
         return name:find('item') or name:find('drop') or name:find('loot') or 
                name:find('coin') or name:find('chest') or name:find('money') or
                name:find('roka') or name:find('arrow') or name:find('spawn') or
@@ -7734,7 +7728,6 @@ local bypassSuccess, bypassError = pcall(function()
                obj:FindFirstChild('ItemPrompt')
     end
     
-    -- Process detected item
     local function ProcessItem(obj)
         if not IsValidItem(obj) then return end
         if #DetectedItems >= CONFIG.MaxItems then return end
@@ -7748,14 +7741,12 @@ local bypassSuccess, bypassError = pcall(function()
         
         log('New item detected: ' .. obj.Name)
         
-        -- Auto-clean when destroyed
         obj.Destroying:Once(function()
             ProcessedObjects[obj] = nil
             DetectedItems[obj.Name] = nil
         end)
     end
     
-    -- Method 1: Magnitude spoof (anti-distance check)
     local OldIndex
     OldIndex = hookmetamethod(Vector3.new(), '__index', newcclosure(function(self, key)
         if not checkcaller() and key == 'magnitude' then
@@ -7770,7 +7761,6 @@ local bypassSuccess, bypassError = pcall(function()
         return OldIndex(self, key)
     end))
     
-    -- Method 2: XP Key spoof
     local OldNameCall
     OldNameCall = hookmetamethod(game, '__namecall', newcclosure(function(self, ...)
         if not checkcaller() then
@@ -7782,9 +7772,7 @@ local bypassSuccess, bypassError = pcall(function()
         return OldNameCall(self, ...)
     end))
     
-    -- Method 3: DescendantAdded (catches nested spawns)
     table.insert(Connections, workspace.DescendantAdded:Connect(function(descendant)
-        -- Debounce to prevent spam processing
         task.delay(CONFIG.DebounceTime, function()
             if descendant and descendant.Parent then
                 ProcessItem(descendant)
@@ -7792,19 +7780,17 @@ local bypassSuccess, bypassError = pcall(function()
         end)
     end))
     
-    -- Method 4: Throttled full scan for existing items
     local function FullScan()
         if IsScanning or (tick() - LastScan) < CONFIG.ScanInterval then return end
         IsScanning = true
         
         task.defer(function()
             local count = 0
-            -- Use GetDescendants but with strict limits
             local descendants = workspace:GetDescendants()
-            local step = math.max(1, math.floor(#descendants / 100)) -- Process in chunks
+            local step = math.max(1, math.floor(#descendants / 100))
             
             for i = 1, #descendants, step do
-                if count >= 10 then break end -- Max 10 new items per scan
+                if count >= 10 then break end
                 local obj = descendants[i]
                 if IsValidItem(obj) then
                     ProcessItem(obj)
@@ -7818,17 +7804,14 @@ local bypassSuccess, bypassError = pcall(function()
         end)
     end
     
-    -- Periodic scan (every 3 seconds)
     task.spawn(function()
         while task.wait(3) do
             FullScan()
         end
     end)
     
-    -- Initial scan
     FullScan()
     
-    -- Global API
     getgenv().YBA_GetItems = function()
         local list = {}
         for name, data in pairs(DetectedItems) do
