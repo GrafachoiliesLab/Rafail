@@ -6292,29 +6292,17 @@ QuestFarmSection:Toggle({
             notify("YBA Script", "Quest Farm started!")
             getgenv().CompletedQuest = true
             enableNoclip()
-            local function GetPlayerLevel()
-                local player = GetPlayer()
-                if player and player:FindFirstChild("PlayerStats") and player.PlayerStats:FindFirstChild("Level") then
-                    return player.PlayerStats.Level.Value
-                end
-                return 0
-            end
+            getgenv().TargetQuestLevel = GetQuestLevelRequirement(getgenv().SelectedQuest)
+            getgenv().LockedQuest = nil
             
-            local function GetQuestLevelRequirement(questName)
-                if not questName then return 0 end
-                local levelReq = tonumber(questName:match("(%d+)"))
-                return levelReq or 0
-            end
-            
-            local function GetBestAvailableQuest()
-                local playerLevel = GetPlayerLevel()
+            local function GetBestQuestForLevel(currentLevel)
                 local bestQuest = nil
                 local highestReq = -1
                 
                 for _, questName in pairs(ParsedQuests) do
                     if questName ~= "No quests available" then
                         local levelReq = GetQuestLevelRequirement(questName)
-                        if levelReq and levelReq <= playerLevel and levelReq > highestReq then
+                        if levelReq and levelReq <= currentLevel and levelReq > highestReq then
                             highestReq = levelReq
                             bestQuest = questName
                         end
@@ -6323,35 +6311,176 @@ QuestFarmSection:Toggle({
                 return bestQuest
             end
             
-            local function UpdateQuestDropdown(newQuest)
-                pcall(function()
-                    for _, element in pairs(QuestFarmSection:GetChildren() or {}) do
-                        if element.Flag == "SelectedQuest" or element.Title == "Select Quest" then
-                            if element.Set then
-                                element:Set(newQuest)
-                            elseif element.Update then
-                                element:Update({Value = newQuest})
+            local function ShouldProgressToNextQuest()
+                local currentLevel = GetPlayerLevel()
+                local targetLevel = getgenv().TargetQuestLevel or 35
+                
+                if currentLevel >= targetLevel then
+                    if not getgenv().LockedQuest then
+                        getgenv().LockedQuest = getgenv().SelectedQuest
+                    end
+                    return false
+                end
+                
+                local bestQuest = GetBestQuestForLevel(currentLevel)
+                if bestQuest and bestQuest ~= getgenv().SelectedQuest then
+                    local bestLevel = GetQuestLevelRequirement(bestQuest)
+                    local currentSelectedLevel = GetQuestLevelRequirement(getgenv().SelectedQuest)
+                    
+                    if bestLevel > currentSelectedLevel and bestLevel <= targetLevel then
+                        return true
+                    end
+                end
+                
+                return false
+            end
+            
+            local function UpdateToNextQuest()
+                local currentLevel = GetPlayerLevel()
+                local bestQuest = GetBestQuestForLevel(currentLevel)
+                
+                if bestQuest and bestQuest ~= getgenv().SelectedQuest then
+                    getgenv().SelectedQuest = bestQuest
+                    
+                    pcall(function()
+                        for _, element in pairs(QuestFarmSection:GetChildren() or {}) do
+                            if element.Flag == "SelectedQuest" and element.Set then
+                                element:Set(bestQuest)
+                                break
                             end
-                            break
+                        end
+                    end)
+                    
+                    return true
+                end
+                return false
+            end
+            getgenv().TargetQuestLevel = GetQuestLevelRequirement(getgenv().SelectedQuest)
+            local player = GetPlayer()
+            if player and player:FindFirstChild("PlayerStats") then
+                local questProgress = player.PlayerStats:FindFirstChild("QuestProgress")
+                local questMax = player.PlayerStats:FindFirstChild("QuestMaxProgress")
+                local currentQuest = player.PlayerStats:FindFirstChild("CurrentQuest")
+                
+                if questProgress and questMax and questProgress.Value < questMax.Value then
+                    getgenv().CompletedQuest = false
+                    
+                    local questData = nil
+                    if currentQuest and currentQuest.Value ~= "" then
+                        questData = QuestInfo[currentQuest.Value]
+                        if QuestInfo[currentQuest.Value] then
+                            getgenv().SelectedQuest = currentQuest.Value
                         end
                     end
-                end)
-            end
-            
-            local selectedQuest = getgenv().SelectedQuest
-            local playerLevel = GetPlayerLevel()
-            local selectedQuestLevel = GetQuestLevelRequirement(selectedQuest)
-            
-            if selectedQuestLevel > playerLevel then
-                local bestQuest = GetBestAvailableQuest()
-                if bestQuest then
-                    getgenv().SelectedQuest = bestQuest
-                    UpdateQuestDropdown(bestQuest)
+                    
+                elseif currentQuest and currentQuest.Value ~= "" and questProgress and questMax and questProgress.Value >= questMax.Value then
+                    notify("YBA Script", "Quest ready to turn in!")
+                    getgenv().CompletedQuest = true
                 else
-                    notify("YBA Script", "WARNING: No quests available for level " .. playerLevel)
+                    getgenv().CompletedQuest = true
                 end
             else
+                getgenv().CompletedQuest = true
             end
+            
+            local function GetPlayerLevel()
+                local player = GetPlayer()
+                if player and player:FindFirstChild("PlayerStats") and player.PlayerStats:FindFirstChild("Level") then
+                    return player.PlayerStats.Level.Value
+                end
+                return 0
+            end
+            
+            local playerLevel = GetPlayerLevel()
+            local hasStand = HasStand()
+            
+            if playerLevel <= 2 and not hasStand and getgenv().QuestMethod == "With Stand" then
+
+                local originalMethod = getgenv().QuestMethod
+                getgenv().QuestMethod = "Without Stand"
+                
+                getgenv().SelectedQuest = "Officer Sam [Lvl. 1+]"
+
+                local startTime = tick()
+                local maxWait = 300
+                
+                while getgenv().QuestFarmEnabled and playerLevel <= 2 and tick() - startTime < maxWait do
+                    playerLevel = GetPlayerLevel()
+                    
+                    if playerLevel >= 3 then
+                        break
+                    end
+                    
+                    if getgenv().CompletedQuest then
+                        local questNPC = workspace:FindFirstChild("Dialogues") and workspace.Dialogues:FindFirstChild("Officer Sam [Lvl. 1+]")
+                        if questNPC then
+                            pcall(function() GetQuest(questNPC) end)
+                            getgenv().CompletedQuest = false
+                        end
+                    else
+                        local living = workspace:FindFirstChild("Living")
+                        if living then
+                            for _, v in pairs(living:GetChildren()) do
+                                if not getgenv().QuestFarmEnabled then break end
+                                if v.Name == "Thug" and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Health") and v.Health.Value > 0 then
+                                    pcall(function() KillEnemy(v) end)
+                                    task.wait(math.max(0.05, getgenv().QuestDelay))
+                                    
+                                    playerLevel = GetPlayerLevel()
+                                    if playerLevel >= 3 then break end
+                                end
+                            end
+                        end
+                    end
+                    
+                    task.wait(0.1)
+                end
+                
+                if playerLevel >= 3 then
+                    local success = CollectRokaArrow()
+                    if success then
+                        local character = GetCharacter()
+                        local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
+                        if humanoid then
+                            humanoid.Health = 0
+                        end
+                        GetPlayer().CharacterAdded:Wait()
+                        task.wait(2)
+                    else
+                        notify("YBA Script", "Failed to get stand, will retry...")
+                    end
+                end
+                
+                getgenv().QuestMethod = originalMethod
+            end
+            
+            local function GetPlayerLevel()
+    local hasStand = HasStand()
+    
+    if getgenv().QuestMethod ~= "With Stand" then return true end
+    if playerLevel < 3 then return true end
+    
+    if not hasStand then
+        notify("YBA Script", "Level " .. playerLevel .. " requires stand! Obtaining one...")
+        local success = CollectRokaArrow()
+        if success then
+            local character = GetCharacter()
+            local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
+            if humanoid then
+                humanoid.Health = 0
+            end
+            GetPlayer().CharacterAdded:Wait()
+            task.wait(2)
+            notify("YBA Script", "Stand obtained! Resuming quest farming...")
+            return true
+        else
+            notify("YBA Script", "Failed to obtain stand!")
+            return false
+        end
+    end
+    return true
+end
+            
             local function GetPlayerLevel()
                 local player = GetPlayer()
                 if player and player:FindFirstChild("PlayerStats") and player.PlayerStats:FindFirstChild("Level") then
@@ -6407,7 +6536,6 @@ QuestFarmSection:Toggle({
                 if bestQuest then
                     getgenv().SelectedQuest = bestQuest
                     UpdateQuestDropdown(bestQuest)
-                    notify("YBA Script", "Level " .. playerLevel .. " too low for " .. currentQuest .. ". Auto-switched to: " .. bestQuest)
                 else
                     notify("YBA Script", "WARNING: No quests available for level " .. playerLevel)
                 end
@@ -6420,7 +6548,7 @@ QuestFarmSection:Toggle({
                     if Child and Child.Name == "QuestCompleted" then
                         getgenv().CompletedQuest = true
                         pcall(function() questStatus:Update({ Title = "Status: Quest Completed!" }) end)
-                        notify("YBA Script", "Quest completed! Getting next one...")
+                        notify("YBA Script", "Quest is completed Lazy *****")
                     end
                 end)
             end
@@ -6429,19 +6557,11 @@ QuestFarmSection:Toggle({
                 while getgenv().QuestFarmEnabled do
                     local autoSwitchOnLevelUp = false
                     
-                    if autoSwitchOnLevelUp then
-                        local playerLevel = GetPlayerLevel()
-                        local currentQuest = getgenv().SelectedQuest
-                        local targetQuestLevel = GetQuestLevelRequirement(currentQuest)
-                        local bestQuest = GetBestAvailableQuest()
-                        
-                        if bestQuest and bestQuest ~= currentQuest then
-                            local bestQuestLevel = GetQuestLevelRequirement(bestQuest)
-                            if bestQuestLevel > targetQuestLevel and bestQuestLevel > selectedQuestLevel then
-                                getgenv().SelectedQuest = bestQuest
-                                UpdateQuestDropdown(bestQuest)
+                    if not getgenv().LockedQuest then
+                        if ShouldProgressToNextQuest() then
+                            if UpdateToNextQuest() then
                                 getgenv().CompletedQuest = true
-                                notify("YBA Script", "Leveled up! Switching to: " .. bestQuest)
+                                questName = getgenv().SelectedQuest
                                 task.wait(0.5)
                             end
                         end
@@ -6455,7 +6575,6 @@ QuestFarmSection:Toggle({
                         if selectedLevel > playerLevel then
                             local bestQuest = GetBestAvailableQuest()
                             if bestQuest and bestQuest ~= selectedQuest then
-                                notify("YBA Script", "Level " .. playerLevel .. " is not enough for " .. selectedQuest .. " (Req: " .. selectedLevel .. "). Switching to: " .. bestQuest)
                                 getgenv().SelectedQuest = bestQuest
                                 pcall(function()
                                     local dropdown = QuestFarmSection:FindFirstChild("SelectedQuest")
@@ -6464,7 +6583,6 @@ QuestFarmSection:Toggle({
                                     end
                                 end)
                             elseif not bestQuest then
-                                notify("YBA Script", "Level " .. playerLevel .. " is not enough for " .. selectedQuest .. ". No available quests found!")
                                 task.wait(3)
                                 continue
                             end
@@ -6473,14 +6591,13 @@ QuestFarmSection:Toggle({
                     
                     local questName = getgenv().SelectedQuest
                     
-                    if getgenv().QuestMethod == "With Stand" then
-    if playerLevel < 3 then
-        EquipStand()
-        
-    elseif playerLevel >= 3 and not HasStand() then
+                                        if getgenv().QuestMethod == "With Stand" then
+                        if playerLevel < 3 then
+                            EquipStand()
+                            
+                        elseif playerLevel >= 3 and not HasStand() then
                             local success = CollectRokaArrow()
                             if not success then
-                                
                                 continue
                             else
                                 task.wait(1)
@@ -6493,7 +6610,6 @@ QuestFarmSection:Toggle({
                                 player.CharacterAdded:Wait()
                                 task.wait(2)
                                 local newStand = player.PlayerStats.Stand.Value
-                                notify("YBA Script", "Respawned with stand: " .. newStand)
                                 EquipStand()
                                 task.wait(1)
                             end
@@ -6507,7 +6623,6 @@ QuestFarmSection:Toggle({
                                         UpdateQuestStatus()
 
                     if not questName or questName == "" or questName == "No quests available" then
-                        
                         continue
                     end
 
@@ -6515,28 +6630,43 @@ QuestFarmSection:Toggle({
                     if not questData then
                         pcall(function() questStatus:Update({ Title = "Status: Quest data not found" }) end)
                         notify("YBA Script", "Quest data not found: " .. questName)
-                        
                         continue
                     end
 
-                    if getgenv().QuestMethod == "With Stand" and playerLevel >= 3 and not HasStand() and not getgenv().GettingStand then
-                        getgenv().GettingStand = true
-                        notify("YBA Script", "Level " .. playerLevel .. " reached! Obtaining stand...")
-                        
-                        local success = CollectRokaArrow()
-                        if success then
-                            notify("YBA Script", "Stand obtained! Resuming quest farming...")
-                            getgenv().CompletedQuest = true
-                        else
-                            notify("YBA Script", "Failed to get stand, retrying...")
+                    if getgenv().QuestMethod == "With Stand" and playerLevel >= 3 and not HasStand() then
+                        if not EnsureStandForQuesting() then
+                            task.wait(2)
+                            continue
                         end
-                        getgenv().GettingStand = false
-                        task.wait(1)
-                        continue
                     end
 
-                    if getgenv().CompletedQuest then
+                                        if getgenv().CompletedQuest then
                         pcall(function() questStatus:Update({ Title = "Status: Taking quest..." }) end)
+                        
+                        local currentLevel = GetPlayerLevel()
+                        
+                        if not getgenv().LockedQuest then
+                            local bestQuest = GetBestQuestForLevel(currentLevel)
+                            local targetLevel = getgenv().TargetQuestLevel or 35
+                            
+                            if GetQuestLevelRequirement(getgenv().SelectedQuest) > currentLevel then
+                                if bestQuest then
+                                    getgenv().SelectedQuest = bestQuest
+                                    questName = bestQuest
+                                    
+                                    pcall(function()
+                                        for _, element in pairs(QuestFarmSection:GetChildren() or {}) do
+                                            if element.Flag == "SelectedQuest" and element.Set then
+                                                element:Set(bestQuest)
+                                                break
+                                            end
+                                        end
+                                    end)
+                                    
+                                end
+                            end
+                        end
+                        
                         local questNPC = workspace:FindFirstChild("Dialogues") and workspace.Dialogues:FindFirstChild(questName)
                         if questNPC then
                             local ok = false
@@ -6544,14 +6674,11 @@ QuestFarmSection:Toggle({
                             if ok then
                                 getgenv().CompletedQuest = false
                                 pcall(UpdateQuestStatus)
-                                
                             else
                                 pcall(function() questStatus:Update({ Title = "Status: Failed to take quest, waiting..." }) end)
-                                
                             end
                         else
                             pcall(function() questStatus:Update({ Title = "Status: Quest NPC not found" }) end)
-                            
                         end
                     else
                         if questData.Enemy then
@@ -6565,20 +6692,18 @@ QuestFarmSection:Toggle({
                                     if v.Name == enemyName and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Health") and v.Health.Value > 0 then
                                         local currentLvl = GetPlayerLevel()
                                         if currentLvl >= 3 and not HasStand() and getgenv().QuestMethod == "With Stand" then
-                                            notify("YBA Script", "Level 3 reached! Breaking to get stand...")
                                             break
                                         end
                                         
                                         local success, err = pcall(function() KillEnemy(v) end)
                                         if not success then warn("Quest Farm Error:", err) end
                                         doneThisCycle = true
+                                        task.wait(math.max(0.05, getgenv().QuestDelay))
                                     end
                                 end
                                 if not doneThisCycle then
-                                    
                                 end
                             else
-                                
                             end
                         elseif questData.Item then
                             pcall(function() questStatus:Update({ Title = "Status: Collecting " .. questData.Item }) end)
@@ -6618,11 +6743,14 @@ QuestFarmSection:Toggle({
                                                 if HRP and v.PrimaryPart then
                                                     local OldCF = HRP.CFrame
                                                     HRP.CFrame = v.PrimaryPart.CFrame - Vector3.new(0, 10, 0)
+                                                    task.wait(math.max(0.05, getgenv().QuestDelay))
                                                     fireproximityprompt(prox, 0, true)
+                                                    task.wait(math.max(0.05, getgenv().QuestDelay))
                                                     HRP.CFrame = OldCF
                                                 end
                                             end)
                                             if not success then warn("Item collect error:", err) end
+                                            task.wait(math.max(0.05, getgenv().QuestDelay))
                                         end
                                     end
                                 end
@@ -6630,7 +6758,6 @@ QuestFarmSection:Toggle({
                         end
                     end
 
-                        
                     end
 
                     pcall(function()
