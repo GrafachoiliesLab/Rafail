@@ -2848,6 +2848,78 @@ ConfigTab:Dropdown({
         notify("YBA Script", "Theme changed to " .. theme)
     end
 })
+ConfigTab:Section({
+    Title = "Report / Feedback",
+    TextSize = 20,
+    FontWeight = Enum.FontWeight.SemiBold,
+})
+
+ConfigTab:Paragraph({
+    Title = "Report Something",
+    Desc = "Report bugs, features that don't work, or suggest new features. We review all reports and will consider adding suggested features.",
+    TextSize = 14
+})
+
+local reportWebhook = "https://discord.com/api/webhooks/1479673229915455529/OmWvkYJe1i7o2-3kyNnXlbyFuLoHUA_rwo4kitLFCmqBr8tQRdooKkH-XJaPiXzYtrt5"
+
+ConfigTab:Input({
+    Flag = "ReportInput",
+    Title = "Report",
+    Placeholder = "Describe the issue or suggest a feature...",
+    Callback = function(value)
+        if value and value ~= "" then
+            local success, err = pcall(function()
+                local HttpService = game:GetService("HttpService")
+                local data = {
+                    embeds = {{
+                        title = "Methion YBA Script - Report",
+                        description = value,
+                        color = 0xff0000,
+                        timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ"),
+                        fields = {
+                            {
+                                name = "Username",
+                                value = game.Players.LocalPlayer.Name,
+                                inline = true
+                            },
+                            {
+                                name = "UserId",
+                                value = tostring(game.Players.LocalPlayer.UserId),
+                                inline = true
+                            },
+                            {
+                                name = "Executor",
+                                value = identifyexecutor() or "Unknown",
+                                inline = true
+                            }
+                        }
+                    }}
+                }
+                
+                local jsonData = HttpService:JSONEncode(data)
+                
+                local requestFunc = syn and syn.request or http_request or request or HttpPost
+                if requestFunc then
+                    requestFunc({
+                        Url = reportWebhook,
+                        Method = "POST",
+                        Headers = {
+                            ["Content-Type"] = "application/json"
+                        },
+                        Body = jsonData
+                    })
+                    notify("YBA Script", "Report sent successfully! Thank you for your feedback.")
+                else
+                    notify("YBA Script", "Failed to send report - executor not supported")
+                end
+            end)
+            
+            if not success then
+                notify("YBA Script", "Error sending report: " .. tostring(err))
+            end
+        end
+    end
+})
 ConfigTab:Space()
 ConfigTab:Keybind({
         Flag = "KeybindTest",
