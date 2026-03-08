@@ -34,15 +34,15 @@ local Window = WindUI:CreateWindow({
     BackgroundImageTransparency = 0.8,
     Transparent = true,
     OpenButton = {
-        Title = "Open Azure UI",
-        CornerRadius = UDim.new(1,0),
-        StrokeThickness = 3,
+        Title = "Open Light Methion UI",
+        CornerRadius = UDim.new(5,0),
+        StrokeThickness = 4,
         Enabled = true,
         Draggable = true,
         OnlyMobile = false,
         Color = ColorSequence.new(
-            Color3.fromHex("#30FF6A"),
-            Color3.fromHex("#e7ff2f")
+            Color3.fromHex("#FFFFFF"),
+            Color3.fromHex("#000000")
         )
     }
 })
