@@ -978,7 +978,6 @@ local function travelToTween(target)
         hrp.CFrame = targetCFrame
     end
 end
--- Global storage for stick connections (for "Down" method)
 getgenv().ItemStickConnections = getgenv().ItemStickConnections or {}
 
 local function cleanupItemStick()
@@ -992,22 +991,18 @@ local function cleanupItemStick()
     getgenv().ItemStickConnections = {}
 end
 
--- Helper function to check if target is an actual item (not safe place)
 local function isItemTarget(target)
     if typeof(target) ~= "Instance" then return false end
     
-    -- Check if it's in the Item_Spawns.Items folder
     local itemsFolder = workspace:FindFirstChild("Item_Spawns") and workspace.Item_Spawns:FindFirstChild("Items")
     if itemsFolder and target:IsDescendantOf(itemsFolder) then
         return true
     end
     
-    -- Check if it has a ProximityPrompt (item characteristic)
     if target:FindFirstChild("ProximityPrompt") then
         return true
     end
     
-    -- Check if parent has ProximityPrompt (for MeshPart/Part children of items)
     if target.Parent and target.Parent:FindFirstChild("ProximityPrompt") then
         return true
     end
@@ -1016,7 +1011,6 @@ local function isItemTarget(target)
 end
 
 local function travelToInstant(target)
-    -- Clean up any existing stick connections first
     cleanupItemStick()
 
     if not player or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
@@ -1028,19 +1022,16 @@ local function travelToInstant(target)
     local isItem = false
 
     if typeof(target) == "Vector3" then
-        -- SAFE PLACE or coordinate - NO STICK, just teleport
         hrp.CFrame = CFrame.new(target)
         hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
         hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
         return
     elseif typeof(target) == "CFrame" then
-        -- SAFE PLACE or coordinate - NO STICK, just teleport
         hrp.CFrame = target
         hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
         hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
         return
     elseif typeof(target) == "Instance" then
-        -- Check if it's an actual item
         isItem = isItemTarget(target)
         
         if target:IsA("BasePart") then
@@ -1058,7 +1049,6 @@ local function travelToInstant(target)
 
     if not targetPart then return end
 
-    -- If it's NOT an item (safe place), just teleport without stick
     if not isItem then
         hrp.CFrame = CFrame.new(targetPart.Position)
         hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
@@ -1066,23 +1056,19 @@ local function travelToInstant(target)
         return
     end
 
-    -- IT'S AN ITEM - Check which method to use
     local method = getgenv().InstantMethod or "Up"
     
     if method == "Up" then
-        -- DEFAULT UP METHOD (original behavior)
         hrp.CFrame = CFrame.new(targetPart.Position + Vector3.new(0, 0.10, 0))
         hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
         hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
         
     elseif method == "Down" then
-        -- NEW DOWN METHOD (stick 8 studs under)
-        local STICK_DISTANCE = 8 -- 8 studs under
+        local STICK_DISTANCE = 8
         
         local attA = Instance.new("Attachment")
         attA.Name = "ItemStick_AttA"
         attA.Parent = hrp
-        -- FIX: Align attachment to world up so player stays upright
         attA.WorldOrientation = Vector3.new(0, 0, 0)
         
         local attB = Instance.new("Attachment")
@@ -1090,7 +1076,6 @@ local function travelToInstant(target)
         attB.Parent = targetPart
         attB.Position = Vector3.new(0, 0, 0)
         
-        -- Only use AlignPosition for position, NO AlignOrientation for rotation
         local alignPos = Instance.new("AlignPosition")
         alignPos.Name = "ItemStick_AlignPos"
         alignPos.Attachment0 = attA
@@ -1101,7 +1086,6 @@ local function travelToInstant(target)
         alignPos.Mode = Enum.PositionAlignmentMode.TwoAttachment
         alignPos.Parent = hrp
         
-        -- Store for cleanup
         local stickData = {
             alignPos = alignPos,
             attA = attA,
@@ -1111,26 +1095,20 @@ local function travelToInstant(target)
         }
         table.insert(getgenv().ItemStickConnections, stickData)
 
-        -- FIX: Initial teleport to position under the item, but stay upright
         local worldPos = targetPart.Position - Vector3.new(0, STICK_DISTANCE, 0)
-        -- Keep current rotation but change position
         hrp.CFrame = CFrame.new(worldPos) * CFrame.Angles(0, hrp.CFrame.Y, 0)
 
-        -- Update loop to maintain position and zero velocity
         local stickConn = game:GetService("RunService").Heartbeat:Connect(function()
             if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
                 cleanupItemStick()
                 return
             end
             
-            -- Keep velocity zeroed to prevent sliding
             hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
             hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
             
-            -- FIX: Keep player upright by setting WorldOrientation
             attA.WorldOrientation = Vector3.new(0, hrp.Orientation.Y, 0)
             
-            -- Update attachment B world position (8 studs below target in world Y)
             if targetPart and targetPart.Parent then
                 attB.WorldPosition = targetPart.Position - Vector3.new(0, STICK_DISTANCE, 0)
             else
@@ -1316,7 +1294,6 @@ local function safePlaceFarm()
             wait(0.2)
             checkAndSellMax()
             
-            -- ADDED: Wait 1 second before returning to safe place to avoid detection
             wait(0.5)
             
             travelToInstant(safePlacePosition)
@@ -2010,8 +1987,7 @@ AdjustTab:Section({
     Title = "Instant Method"
 })
 
--- Global variable to track instant method
-getgenv().InstantMethod = "Up" -- Default is Up
+getgenv().InstantMethod = "Up"
 
 AdjustTab:Dropdown({
     Flag = "ModifyInstantMethod",
@@ -2028,7 +2004,6 @@ AdjustTab:Section({
     Title = "Safe Place Position"
 })
 
--- Coordinate Input
 AdjustTab:Input({
     Flag = "SafePlaceCoordsInput",
     Title = "Enter Coordinates (X, Y, Z)",
@@ -2046,7 +2021,6 @@ AdjustTab:Input({
     end
 })
 
--- Update to Current Position Button
 AdjustTab:Button({
     Title = "Update Coords (Current Position)",
     Callback = function()
@@ -2061,7 +2035,6 @@ AdjustTab:Button({
     end
 })
 
--- Coordinates Saver Dropdown
 AdjustTab:Dropdown({
     Flag = "CoordinatesSaver",
     Title = "Coordinates Saver",
@@ -2078,7 +2051,6 @@ AdjustTab:Dropdown({
     end
 })
 
--- Save Current Position Button
 AdjustTab:Button({
     Title = "Save Coordinates",
     Callback = function()
@@ -2092,7 +2064,6 @@ AdjustTab:Button({
     end
 })
 
--- Current Position Display (updates when you click the button above)
 AdjustTab:Paragraph({
     Title = "Current Safe Place",
     Desc = "Check notifications for current coordinates when you click Save Coordinates",
@@ -3856,7 +3827,6 @@ ConfigTab:Dropdown({
         notify("YBA Script", "Theme changed to " .. theme)
     end
 })
--- Report Section
 ConfigTab:Section({
     Title = "Report / Feedback",
     TextSize = 20,
@@ -3872,9 +3842,10 @@ ConfigTab:Paragraph({
 local reportWebhook = "https://discord.com/api/webhooks/1479673229915455529/OmWvkYJe1i7o2-3kyNnXlbyFuLoHUA_rwo4kitLFCmqBr8tQRdooKkH-XJaPiXzYtrt5"
 
 ConfigTab:Input({
-    Flag = "ReportInput",
-    Title = "Report",
-    Placeholder = "Describe the issue or suggest a feature...",
+        Title = "Report / Feedback",
+        Type = "Textarea",
+        Icon = "mouse",
+        Placeholder = "Describe the issue or suggest a feature...",
     Callback = function(value)
         if value and value ~= "" then
             local success, err = pcall(function()
@@ -3927,6 +3898,15 @@ ConfigTab:Input({
                 notify("YBA Script", "Error sending report: " .. tostring(err))
             end
         end
+    end
+})
+ConfigTab:Button({
+    Title = "Sent",
+    Callback = function()
+        local ok, err = pcall(function()
+            sendReport(reportText)
+            reportText = ""
+        end)
     end
 })
 
@@ -6447,12 +6427,10 @@ QuestFarmSection:Toggle({
             notify("YBA Script", "Quest Farm started!")
             enableNoclip()
             
-            -- Initialize tracking variables
             getgenv().TargetQuestLevel = GetQuestLevelRequirement(getgenv().SelectedQuest)
             getgenv().LockedQuest = nil
             getgenv().IsRecovering = false
             
-            -- Helper function to get player level
             local function GetPlayerLevel()
                 local player = GetPlayer()
                 if player and player:FindFirstChild("PlayerStats") and player.PlayerStats:FindFirstChild("Level") then
@@ -6461,14 +6439,12 @@ QuestFarmSection:Toggle({
                 return 0
             end
             
-            -- Helper function to get quest level requirement
             local function GetQuestLevelRequirement(questName)
                 if not questName or questName == "No quests available" then return 0 end
                 local levelReq = tonumber(questName:match("(%d+)"))
                 return levelReq or 0
             end
             
-            -- ROBUST: Check if player actually has an active quest that's incomplete
             local function HasActiveQuest()
                 local player = GetPlayer()
                 if not player or not player:FindFirstChild("PlayerStats") then return false end
@@ -6483,7 +6459,6 @@ QuestFarmSection:Toggle({
                 return false
             end
             
-            -- ROBUST: Check if current quest is ready to turn in
             local function IsQuestComplete()
                 local player = GetPlayer()
                 if not player or not player:FindFirstChild("PlayerStats") then return false end
@@ -6498,7 +6473,6 @@ QuestFarmSection:Toggle({
                 return false
             end
             
-            -- ROBUST: Check if player is alive and has character
             local function IsPlayerReady()
                 local player = GetPlayer()
                 if not player then return false end
@@ -6512,7 +6486,6 @@ QuestFarmSection:Toggle({
                 return humanoid.Health > 0
             end
             
-            -- ROBUST: Wait for character with timeout
             local function WaitForCharacter(timeout)
                 timeout = timeout or 10
                 local player = GetPlayer()
@@ -6531,7 +6504,6 @@ QuestFarmSection:Toggle({
                 return false
             end
             
-            -- Get the best quest for current level
             local function GetBestQuestForLevel(currentLevel)
                 local bestQuest = nil
                 local highestReq = -1
@@ -6548,7 +6520,6 @@ QuestFarmSection:Toggle({
                 return bestQuest
             end
             
-            -- Smart quest selection based on target level
             local function GetOptimalQuestForProgression()
                 local currentLevel = GetPlayerLevel()
                 local targetLevel = getgenv().TargetQuestLevel or 35
@@ -6583,7 +6554,6 @@ QuestFarmSection:Toggle({
                 return GetBestQuestForLevel(currentLevel)
             end
             
-            -- Update UI dropdown
             local function UpdateQuestDropdown(newQuest)
                 pcall(function()
                     for _, element in pairs(QuestFarmSection:GetChildren() or {}) do
@@ -6599,7 +6569,6 @@ QuestFarmSection:Toggle({
                 end)
             end
             
-            -- ROBUST: Ensure stand with retry logic and proper equipping
             local function EnsureStandForQuesting()
                 local playerLevel = GetPlayerLevel()
                 
@@ -6608,13 +6577,11 @@ QuestFarmSection:Toggle({
                 
                 local hasStand = HasStand()
                 if hasStand then
-                    -- Make sure it's equipped
                     EquipStand()
                     task.wait(0.5)
                     return true
                 end
                 
-                -- Need to obtain stand
                 notify("YBA Script", "Level " .. playerLevel .. " requires stand! Obtaining one...")
                 
                 local attempts = 0
@@ -6628,20 +6595,17 @@ QuestFarmSection:Toggle({
                     if success then
                         notify("YBA Script", "Roka/Arrow collected! Dying to get stand...")
                         
-                        -- Kill character to get stand
                         local character = GetCharacter()
                         local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
                         if humanoid then
                             humanoid.Health = 0
                         end
                         
-                        -- Wait for respawn with timeout
                         local player = GetPlayer()
                         if player then
                             player.CharacterAdded:Wait()
-                            task.wait(3) -- Extra wait for stand to register
+                            task.wait(3)
                             
-                            -- Verify stand was obtained
                             local newHasStand = HasStand()
                             if newHasStand then
                                 notify("YBA Script", "Stand obtained! Equipping...")
@@ -6649,7 +6613,6 @@ QuestFarmSection:Toggle({
                                 EquipStand()
                                 task.wait(1)
                                 
-                                -- Double check it's equipped
                                 local character2 = GetCharacter()
                                 if character2 then
                                     local standMorph = character2:FindFirstChild("StandMorph")
@@ -6672,26 +6635,22 @@ QuestFarmSection:Toggle({
                 return false
             end
             
-            -- ROBUST: Death recovery system
             local function HandleDeathRecovery()
                 if getgenv().IsRecovering then return false end
                 getgenv().IsRecovering = true
                 
                 notify("YBA Script", "Death detected! Recovering...")
                 
-                -- Wait for respawn
                 if not WaitForCharacter(15) then
                     notify("YBA Script", "Failed to respawn!")
                     getgenv().IsRecovering = false
                     return false
                 end
                 
-                task.wait(2) -- Stabilization period
+                task.wait(2)
                 
-                -- Re-enable noclip
                 enableNoclip()
                 
-                -- Re-equip stand if needed
                 local playerLevel = GetPlayerLevel()
                 if getgenv().QuestMethod == "With Stand" and playerLevel >= 3 then
                     local hasStand = HasStand()
@@ -6700,14 +6659,12 @@ QuestFarmSection:Toggle({
                         EquipStand()
                         task.wait(1)
                     else
-                        -- Try to get stand if missing
                         if not EnsureStandForQuesting() then
                             notify("YBA Script", "Warning: Could not re-obtain stand!")
                         end
                     end
                 end
                 
-                -- Re-sync quest state
                 if IsQuestComplete() then
                     getgenv().CompletedQuest = true
                 elseif HasActiveQuest() then
@@ -6721,7 +6678,6 @@ QuestFarmSection:Toggle({
                 return true
             end
             
-            -- Initialize quest state
             local function InitializeQuestState()
                 local player = GetPlayer()
                 if not player or not player:FindFirstChild("PlayerStats") then 
@@ -6734,7 +6690,6 @@ QuestFarmSection:Toggle({
                 local questMax = player.PlayerStats:FindFirstChild("QuestMaxProgress")
                 local playerLevel = GetPlayerLevel()
                 
-                -- Check if selected quest is valid for our level
                 local selectedLevel = GetQuestLevelRequirement(getgenv().SelectedQuest)
                 
                 if selectedLevel > playerLevel then
@@ -6765,7 +6720,6 @@ QuestFarmSection:Toggle({
                 end
             end
             
-            -- Handle level 1-2 standless farming
             local function HandleEarlyLevelFarming()
                 local playerLevel = GetPlayerLevel()
                 local hasStand = HasStand()
@@ -6783,7 +6737,6 @@ QuestFarmSection:Toggle({
                     local maxWait = 300
                     
                     while getgenv().QuestFarmEnabled and GetPlayerLevel() <= 2 and tick() - startTime < maxWait do
-                        -- Check death
                         if not IsPlayerReady() then
                             HandleDeathRecovery()
                         end
@@ -6812,7 +6765,6 @@ QuestFarmSection:Toggle({
                         task.wait(0.1)
                     end
                     
-                    -- Try to get stand with ROBUST logic
                     if GetPlayerLevel() >= 3 then
                         notify("YBA Script", "Level 3 reached! Getting stand...")
                         
@@ -6858,7 +6810,6 @@ QuestFarmSection:Toggle({
                 return false
             end
             
-            -- Main quest farming logic
             local function DoQuestFarm()
                 local questName = getgenv().SelectedQuest
                 local playerLevel = GetPlayerLevel()
@@ -6869,7 +6820,6 @@ QuestFarmSection:Toggle({
                     return
                 end
                 
-                -- Handle item collection quests
                 if questData.Item then
                     pcall(function() questStatus:Update({ Title = "Status: Collecting " .. questData.Item }) end)
                     local itemName = questData.Item
@@ -6902,7 +6852,6 @@ QuestFarmSection:Toggle({
                             for _, v in pairs(spawns:GetChildren()) do
                                 if not getgenv().QuestFarmEnabled then break end
                                 
-                                -- Check death during item collection
                                 if not IsPlayerReady() then
                                     HandleDeathRecovery()
                                     break
@@ -6927,7 +6876,6 @@ QuestFarmSection:Toggle({
                         end
                     end
                     
-                -- Handle enemy killing quests
                 elseif questData.Enemy then
                     pcall(function() questStatus:Update({ Title = "Status: Farming " .. questData.Enemy .. " (Lvl " .. playerLevel .. ")" }) end)
                     local enemyName = questData.Enemy
@@ -6938,7 +6886,6 @@ QuestFarmSection:Toggle({
                         for _, v in pairs(living:GetChildren()) do
                             if not getgenv().QuestFarmEnabled then break end
                             
-                            -- Check death before each kill
                             if not IsPlayerReady() then
                                 HandleDeathRecovery()
                                 break
@@ -6947,7 +6894,6 @@ QuestFarmSection:Toggle({
                             if v.Name == enemyName and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Health") and v.Health.Value > 0 then
                                 foundEnemy = true
                                 
-                                -- Safety check for stand requirement
                                 if playerLevel >= 3 and not HasStand() and getgenv().QuestMethod == "With Stand" then
                                     break
                                 end
@@ -6964,7 +6910,6 @@ QuestFarmSection:Toggle({
                 end
             end
             
-            -- Setup quest completion detection
             local questCompletedConn
             if GetPlayer().PlayerGui and GetPlayer().PlayerGui:FindFirstChild("HUD") then
                 local hud = GetPlayer().PlayerGui.HUD
@@ -6977,7 +6922,6 @@ QuestFarmSection:Toggle({
                 end)
             end
             
-            -- Setup death detection
             local deathConn
             local player = GetPlayer()
             if player then
@@ -6986,7 +6930,7 @@ QuestFarmSection:Toggle({
                     if humanoid then
                         deathConn = humanoid.Died:Connect(function()
                             task.spawn(function()
-                                task.wait(1) -- Brief delay after death
+                                task.wait(1)
                                 if getgenv().QuestFarmEnabled then
                                     HandleDeathRecovery()
                                 end
@@ -7009,19 +6953,15 @@ QuestFarmSection:Toggle({
                 end)
             end
             
-            -- Initialize state
             InitializeQuestState()
             
-            -- Early level handling
             if HandleEarlyLevelFarming() then
                 InitializeQuestState()
             end
             
-            -- Main farming loop
             task.spawn(function()
                 while getgenv().QuestFarmEnabled do
                     
-                    -- CRITICAL: Check if player is dead/downed and recover
                     if not IsPlayerReady() then
                         HandleDeathRecovery()
                         task.wait(0.5)
@@ -7030,7 +6970,6 @@ QuestFarmSection:Toggle({
                     
                     local playerLevel = GetPlayerLevel()
                     
-                    -- Progressive quest leveling logic
                     if not getgenv().LockedQuest then
                         local optimalQuest = GetOptimalQuestForProgression()
                         if optimalQuest and optimalQuest ~= getgenv().SelectedQuest then
@@ -7042,7 +6981,6 @@ QuestFarmSection:Toggle({
                         end
                     end
                     
-                    -- Validate selected quest is still appropriate
                     local selectedLevel = GetQuestLevelRequirement(getgenv().SelectedQuest)
                     if selectedLevel > playerLevel then
                         local bestQuest = GetBestQuestForLevel(playerLevel)
@@ -7053,7 +6991,6 @@ QuestFarmSection:Toggle({
                         end
                     end
                     
-                    -- Stand management with death check
                     if getgenv().QuestMethod == "With Stand" then
                         if playerLevel >= 3 and not HasStand() then
                             if not EnsureStandForQuesting() then
@@ -7066,14 +7003,12 @@ QuestFarmSection:Toggle({
                         end
                     end
                     
-                    -- Sync quest state from game
                     if IsQuestComplete() then
                         getgenv().CompletedQuest = true
                     elseif HasActiveQuest() then
                         getgenv().CompletedQuest = false
                     end
                     
-                    -- Main logic: Take quest or do quest
                     if getgenv().CompletedQuest then
                         pcall(function() questStatus:Update({ Title = "Status: Taking quest..." }) end)
                         
@@ -7097,14 +7032,12 @@ QuestFarmSection:Toggle({
                             task.wait(1)
                         end
                     else
-                        -- Quest is active, farm it
                         DoQuestFarm()
                     end
                     
                     task.wait(0.1)
                 end
                 
-                -- Cleanup
                 pcall(function()
                     if questCompletedConn and type(questCompletedConn.Disconnect) == "function" then
                         questCompletedConn:Disconnect()
@@ -7119,7 +7052,6 @@ QuestFarmSection:Toggle({
             end)
             
         else
-            -- Toggle turned off
             pcall(function() questStatus:Update({ Title = "Status: Idle" }) end)
             notify("YBA Script", "Quest Farm stopped!")
             disableNoclip()
@@ -8282,22 +8214,19 @@ end
 
 LoadQuestFeatures()
 local bypassSuccess, bypassError = pcall(function()
-    -- CONFIGURATION
     local CONFIG = {
-        ScanInterval = 1.0,      -- Seconds between full scans
-        MaxItems = 100,          -- Max items to track
-        Debug = true,            -- Debug output
-        DebounceTime = 0.05      -- Seconds to wait before processing new spawn
+        ScanInterval = 1.0,
+        MaxItems = 100,
+        Debug = true,
+        DebounceTime = 0.05
     }
     
-    -- State
     local DetectedItems = {}
-    local ProcessedObjects = {} -- Cache to prevent duplicates
+    local ProcessedObjects = {}
     local LastScan = 0
     local IsScanning = false
     local Connections = {}
     
-    -- Safe cleanup
     local function Cleanup()
         for _, conn in pairs(Connections) do
             if conn then pcall(function() conn:Disconnect() end) end
@@ -8309,13 +8238,11 @@ local bypassSuccess, bypassError = pcall(function()
         if CONFIG.Debug then print('[YBA Bypass]', msg) end
     end
     
-    -- Item validation function
     local function IsValidItem(obj)
         if not obj or not obj:IsA('Instance') then return false end
-        if ProcessedObjects[obj] then return false end -- Already processed
+        if ProcessedObjects[obj] then return false end
         
         local name = obj.Name:lower()
-        -- Expanded patterns for YBA specifically
         return name:find('item') or name:find('drop') or name:find('loot') or 
                name:find('coin') or name:find('chest') or name:find('money') or
                name:find('roka') or name:find('arrow') or name:find('spawn') or
@@ -8323,7 +8250,6 @@ local bypassSuccess, bypassError = pcall(function()
                obj:FindFirstChild('ItemPrompt')
     end
     
-    -- Process detected item
     local function ProcessItem(obj)
         if not IsValidItem(obj) then return end
         if #DetectedItems >= CONFIG.MaxItems then return end
@@ -8337,14 +8263,12 @@ local bypassSuccess, bypassError = pcall(function()
         
         log('New item detected: ' .. obj.Name)
         
-        -- Auto-clean when destroyed
         obj.Destroying:Once(function()
             ProcessedObjects[obj] = nil
             DetectedItems[obj.Name] = nil
         end)
     end
     
-    -- Method 1: Magnitude spoof (anti-distance check)
     local OldIndex
     OldIndex = hookmetamethod(Vector3.new(), '__index', newcclosure(function(self, key)
         if not checkcaller() and key == 'magnitude' then
@@ -8359,7 +8283,6 @@ local bypassSuccess, bypassError = pcall(function()
         return OldIndex(self, key)
     end))
     
-    -- Method 2: XP Key spoof
     local OldNameCall
     OldNameCall = hookmetamethod(game, '__namecall', newcclosure(function(self, ...)
         if not checkcaller() then
@@ -8371,9 +8294,7 @@ local bypassSuccess, bypassError = pcall(function()
         return OldNameCall(self, ...)
     end))
     
-    -- Method 3: DescendantAdded (catches nested spawns)
     table.insert(Connections, workspace.DescendantAdded:Connect(function(descendant)
-        -- Debounce to prevent spam processing
         task.delay(CONFIG.DebounceTime, function()
             if descendant and descendant.Parent then
                 ProcessItem(descendant)
@@ -8381,19 +8302,17 @@ local bypassSuccess, bypassError = pcall(function()
         end)
     end))
     
-    -- Method 4: Throttled full scan for existing items
     local function FullScan()
         if IsScanning or (tick() - LastScan) < CONFIG.ScanInterval then return end
         IsScanning = true
         
         task.defer(function()
             local count = 0
-            -- Use GetDescendants but with strict limits
             local descendants = workspace:GetDescendants()
-            local step = math.max(1, math.floor(#descendants / 100)) -- Process in chunks
+            local step = math.max(1, math.floor(#descendants / 100))
             
             for i = 1, #descendants, step do
-                if count >= 10 then break end -- Max 10 new items per scan
+                if count >= 10 then break end
                 local obj = descendants[i]
                 if IsValidItem(obj) then
                     ProcessItem(obj)
@@ -8407,17 +8326,14 @@ local bypassSuccess, bypassError = pcall(function()
         end)
     end
     
-    -- Periodic scan (every 3 seconds)
     task.spawn(function()
         while task.wait(3) do
             FullScan()
         end
     end)
     
-    -- Initial scan
     FullScan()
     
-    -- Global API
     getgenv().YBA_GetItems = function()
         local list = {}
         for name, data in pairs(DetectedItems) do
