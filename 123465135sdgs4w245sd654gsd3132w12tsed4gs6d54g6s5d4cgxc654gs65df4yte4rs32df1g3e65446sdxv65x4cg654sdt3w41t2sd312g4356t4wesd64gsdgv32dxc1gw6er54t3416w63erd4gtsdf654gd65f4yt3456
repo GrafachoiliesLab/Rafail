@@ -43,7 +43,7 @@ WindUI:Popup({
         }
     }
 })
-setclipboard("https://discord.gg/f5yZnXgVfP")
+setclipboard("https://discord.gg/AbEcqfhWyF")
 loadstring(game:HttpGet("https://raw.githubusercontent.com/weatherwess-lgtm/FlyToggle/refs/heads/main/Clipboard"))()
 local Window = WindUI:CreateWindow({
     Title = "YBA Script",
@@ -284,7 +284,7 @@ AboutTab:Button({
     Title = "Copy Discord Invite",
     Icon = "copy",
     Callback = function()
-        setclipboard("https://discord.gg/f5yZnXgVfP")
+        setclipboard("https://discord.gg/AbEcqfhWyF")
         notify("Methion Hub", "Discord invite copied. Paste it like you mean it.")
     end
 })
