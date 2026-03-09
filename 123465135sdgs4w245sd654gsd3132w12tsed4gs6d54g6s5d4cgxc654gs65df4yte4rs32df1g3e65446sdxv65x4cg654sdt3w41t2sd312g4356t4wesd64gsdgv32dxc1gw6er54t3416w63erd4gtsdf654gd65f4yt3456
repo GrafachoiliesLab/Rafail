@@ -276,7 +276,7 @@ AboutTab:Section({
 AboutTab:Paragraph({
     Animate = true,
     Title = "Where we patch, argue, and meme",
-    Desc = "Drop in if you want updates, bug fixes, or to watch someone argue over whether a variable should be named 'x' or 'the_impending_doom'. There’s also a guy who asks if it’s detected every day. He gets roasted daily.",
+    Desc = "Drop in if you want updates, bug fixes, or to watch someone argue over whether a variable should be named 'x' or 'the_impending_doom' if you cant join discord Dm @Gaxhlol or @erasedcarl",
     TextSize = 16
 })
 
