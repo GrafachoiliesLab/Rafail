@@ -7361,7 +7361,7 @@ local AutoPrestigeSection = QuestTab:Section({
 
 AutoPrestigeSection:Paragraph({
     Title = "What this does:",
-    Desc = "Auto Prestige 3 automatically farms your account from current level to Prestige 3, Level 50. It handles stand farming, quest completion, item collection, and prestige progression automatically. Requires: Stand arrows, rokakakas, and worthiness skills. The script will farm vampires, complete storylines, and manage your inventory while progressing through all 3 prestiges.",
+    Desc = "Auto Prestige 3 automatically farms your account from current level to Prestige 3, Level 50. It handles stand farming, quest completion, item collection, and prestige progression automatically. Requires: Stand arrows, rokakakas, and worthiness skills. The script will farm vampires, complete storylines, and manage your inventory while progressing through all 3 prestiges. Free key on Discord!! https://discord.gg/J7gdn2QknC",
     TextSize = 14
 })
 
