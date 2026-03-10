@@ -7382,7 +7382,7 @@ AutoPrestigeSection:Toggle({
     Default = false,
     Callback = function(value)
         if value then
-            if autoPrestigeKeyInput ~= "Azure.OnTOP!" then
+            if autoPrestigeKeyInput ~= "Methion.OnTOP!" then
                 notify("YBA Script", "Invalid key! Please enter the key")
                 for _, element in pairs(AutoPrestigeSection:GetChildren() or {}) do
                     if element.Flag == "AutoPrestigeEnabled" and element.Set then
