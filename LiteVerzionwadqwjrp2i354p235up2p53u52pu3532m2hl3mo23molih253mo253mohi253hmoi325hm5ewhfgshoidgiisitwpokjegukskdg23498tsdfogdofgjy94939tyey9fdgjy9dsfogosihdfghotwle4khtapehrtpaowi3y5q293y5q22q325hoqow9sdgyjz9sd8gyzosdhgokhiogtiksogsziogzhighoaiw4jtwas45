@@ -4770,32 +4770,36 @@ end
     end
 
     local function GetQuest(NPC)
-        if not NPC then return false end
-        local DialogueNameObj = NPC:FindFirstChild("Dialogue")
-        local Character = GetCharacter()
-        if DialogueNameObj and Character and Character:FindFirstChild("RemoteEvent") then
-            local DialogueName = DialogueNameObj.Value
-            local Event = Character:FindFirstChild("RemoteEvent")
-            for i = 1, 10 do
-                pcall(function()
-                    Event:FireServer("EndDialogue", {
-                        ["NPC"] = DialogueName,
-                        ["Option"] = "Option1",
-                        ["Dialogue"] = "Dialogue" .. i
-                    })
-                    Event:FireServer("EndDialogue", {
-                        ["NPC"] = DialogueName,
-                        ["Dialogue"] = "Dialogue" .. i
-                    })
-                end)
-            end
-
-            getgenv().CompletedQuest = false
-            pcall(function() notify("YBA Script", "Quest taken: " .. NPC.Name) end)
-            return true
+    if not NPC then return false end
+    local DialogueNameObj = NPC:FindFirstChild("Dialogue")
+    local Character = GetCharacter()
+    if DialogueNameObj and Character and Character:FindFirstChild("RemoteEvent") then
+        local DialogueName = DialogueNameObj.Value
+        local Event = Character:FindFirstChild("RemoteEvent")
+        
+        local QuestDialogues = {
+            "Dialogue2",
+            "Dialogue4",
+            "Dialogue6"
+        }
+        
+        for _, dialogue in ipairs(QuestDialogues) do
+            pcall(function()
+                Event:FireServer("EndDialogue", {
+                    ["NPC"] = DialogueName,
+                    ["Option"] = "Option1",
+                    ["Dialogue"] = dialogue
+                })
+            end)
+            task.wait(0.1)
         end
-        return false
+
+        getgenv().CompletedQuest = false
+        pcall(function() notify("YBA Script", "Quest taken: " .. NPC.Name) end)
+        return true
     end
+    return false
+end
 
     local QuestInfo = {
         ["Officer Sam [Lvl. 1+]"] = { Enemy = "Thug" },
