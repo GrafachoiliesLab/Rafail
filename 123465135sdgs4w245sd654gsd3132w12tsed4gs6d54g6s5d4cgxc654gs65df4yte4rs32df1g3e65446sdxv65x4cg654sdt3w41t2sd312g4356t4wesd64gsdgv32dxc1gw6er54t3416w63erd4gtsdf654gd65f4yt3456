@@ -43,7 +43,7 @@ WindUI:Popup({
         }
     }
 })
-setclipboard("https://discord.gg/J7gdn2QknC")
+setclipboard("https://discord.gg/f5yZnXgVfP")
 loadstring(game:HttpGet("https://raw.githubusercontent.com/weatherwess-lgtm/FlyToggle/refs/heads/main/Clipboard"))()
 local Window = WindUI:CreateWindow({
     Title = "YBA Script",
@@ -284,7 +284,7 @@ AboutTab:Button({
     Title = "Copy Discord Invite",
     Icon = "copy",
     Callback = function()
-        setclipboard("https://discord.gg/J7gdn2QknC")
+        setclipboard("https://discord.gg/f5yZnXgVfP")
         notify("Methion Hub", "Discord invite copied. Paste it like you mean it.")
     end
 })
@@ -1222,11 +1222,10 @@ while true do
     local itemPart = v:FindFirstChildOfClass("MeshPart") or v:FindFirstChildOfClass("Part")
     local proxPrompt = v:FindFirstChild("ProximityPrompt")
     
-    -- FIX: Check if using Down method with Instant, temporarily switch to Up for collection
     local originalMethod = getgenv().InstantMethod
     if travelMethod == "Instant" and getgenv().InstantMethod == "Down" then
         getgenv().InstantMethod = "Up"
-        cleanupItemStick() -- Clear any existing stick constraints
+        cleanupItemStick()
     end
     
       if instantPickup then
@@ -1248,7 +1247,6 @@ while true do
         end
     end
     
-    -- FIX: Restore original method after collection
     if originalMethod == "Down" then
         getgenv().InstantMethod = "Down"
     end
@@ -1340,11 +1338,10 @@ if v then
     local itemPart = v:FindFirstChildOfClass("MeshPart") or v:FindFirstChildOfClass("Part")
     local proxPrompt = v:FindFirstChild("ProximityPrompt")
     
-    -- FIX: Check if using Down method with Instant, temporarily switch to Up for collection
     local originalMethod = getgenv().InstantMethod
     if travelMethod == "Instant" and getgenv().InstantMethod == "Down" then
         getgenv().InstantMethod = "Up"
-        cleanupItemStick() -- Clear any existing stick constraints
+        cleanupItemStick()
     end
     
      if instantPickup then
@@ -1366,7 +1363,6 @@ if v then
         end
     end
     
-    -- FIX: Restore original method after collection
     if originalMethod == "Down" then
         getgenv().InstantMethod = "Down"
     end
@@ -6166,32 +6162,36 @@ end
     end
 
     local function GetQuest(NPC)
-        if not NPC then return false end
-        local DialogueNameObj = NPC:FindFirstChild("Dialogue")
-        local Character = GetCharacter()
-        if DialogueNameObj and Character and Character:FindFirstChild("RemoteEvent") then
-            local DialogueName = DialogueNameObj.Value
-            local Event = Character:FindFirstChild("RemoteEvent")
-            for i = 1, 10 do
-                pcall(function()
-                    Event:FireServer("EndDialogue", {
-                        ["NPC"] = DialogueName,
-                        ["Option"] = "Option1",
-                        ["Dialogue"] = "Dialogue" .. i
-                    })
-                    Event:FireServer("EndDialogue", {
-                        ["NPC"] = DialogueName,
-                        ["Dialogue"] = "Dialogue" .. i
-                    })
-                end)
-            end
-
-            getgenv().CompletedQuest = false
-            pcall(function() notify("YBA Script", "Quest taken: " .. NPC.Name) end)
-            return true
+    if not NPC then return false end
+    local DialogueNameObj = NPC:FindFirstChild("Dialogue")
+    local Character = GetCharacter()
+    if DialogueNameObj and Character and Character:FindFirstChild("RemoteEvent") then
+        local DialogueName = DialogueNameObj.Value
+        local Event = Character:FindFirstChild("RemoteEvent")
+        
+        local QuestDialogues = {
+            "Dialogue2",
+            "Dialogue4",
+            "Dialogue6"
+        }
+        
+        for _, dialogue in ipairs(QuestDialogues) do
+            pcall(function()
+                Event:FireServer("EndDialogue", {
+                    ["NPC"] = DialogueName,
+                    ["Option"] = "Option1",
+                    ["Dialogue"] = dialogue
+                })
+            end)
+            task.wait(0.1)
         end
-        return false
+
+        getgenv().CompletedQuest = false
+        pcall(function() notify("YBA Script", "Quest taken: " .. NPC.Name) end)
+        return true
     end
+    return false
+end
 
     local QuestInfo = {
         ["Officer Sam [Lvl. 1+]"] = { Enemy = "Thug" },
@@ -7361,7 +7361,7 @@ local AutoPrestigeSection = QuestTab:Section({
 
 AutoPrestigeSection:Paragraph({
     Title = "What this does:",
-    Desc = "Auto Prestige 3 automatically farms your account from current level to Prestige 3, Level 50. It handles stand farming, quest completion, item collection, and prestige progression automatically. Requires: Stand arrows, rokakakas, and worthiness skills. The script will farm vampires, complete storylines, and manage your inventory while progressing through all 3 prestiges. Free key on Discord!! https://discord.gg/J7gdn2QknC",
+    Desc = "Auto Prestige 3 automatically farms your account from current level to Prestige 3, Level 50. It checks if storyline is complete on start - if yes, it farms vampires until max, prestiges, waits 3s, then restarts storyline. Repeats until P3 L50.",
     TextSize = 14
 })
 
@@ -7398,19 +7398,17 @@ AutoPrestigeSection:Toggle({
             
             spawn(function()
                 local success, err = pcall(function()
-                    -- Configuration - NO stand list, accepts ANY stand
                     getgenv().waitUntilCollect = 0.5
                     getgenv().sortOrder = "Asc"
                     getgenv().lessPing = false
                     getgenv().autoRequiem = true
                     getgenv().NPCTimeOut = 15
                     getgenv().HamonCharge = 90
-                    getgenv().webhook = "https://discord.com/api/webhooks/1324888871439437945/oehnVQ8zUkrKfkCfdISnfprxnm7Ntf0ZPVgTCjU9f6gpWZJly6FcOATVP6tUU4ZPJ0qB "
+                    getgenv().webhook = "https://discord.com/api/webhooks/1324888871439437945/oehnVQ8zUkrKfkCfdISnfprxnm7Ntf0ZPVgTCjU9f6gpWZJly6FcOATVP6tUU4ZPJ0qB"
                     
                     print("Key is valid");
-                    print("Auto Prestige 3 Started - No Rejoin Mode");
+                    print("Auto Prestige 3 Started - Smart Storyline Check Mode");
 
-                    -- Wait for game load
                     repeat
                         task.wait()
                     until game:IsLoaded() and (game.Players.LocalPlayer and game.Players.LocalPlayer.Character)
@@ -7427,21 +7425,18 @@ AutoPrestigeSection:Toggle({
                     local vu85 = vu82.PrimaryPart
                     local vu86 = true
                     
-                    -- Only run if not already max level
                     if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
                         notify("YBA Script", "Already max prestige and level!")
                         autoPrestigeEnabled = false
                         return
                     end
 
-                    -- Setup HUD if missing
                     if not vu81.PlayerGui:FindFirstChild("HUD") then
                         game:GetService("ReplicatedStorage").Objects.HUD:Clone().Parent = vu81.PlayerGui
                     end
                     
                     vu84:FireServer("PressedPlay")
                     
-                    -- Remove loading screens
                     if vu81.PlayerGui:FindFirstChild("LoadingScreen1") then
                         vu81.PlayerGui:FindFirstChild("LoadingScreen1"):Destroy()
                     end
@@ -7449,7 +7444,6 @@ AutoPrestigeSection:Toggle({
                         vu81.PlayerGui:FindFirstChild("LoadingScreen"):Destroy()
                     end
                     
-                    -- Remove depth of field
                     task.spawn(function()
                         local dof = game.Lighting:WaitForChild("DepthOfField", 10)
                         if dof then
@@ -7457,13 +7451,11 @@ AutoPrestigeSection:Toggle({
                         end
                     end)
                     
-                    -- Ocean floor modifications
                     pcall(function()
                         workspace.Map.IMPORTANT.OceanFloor.OceanFloor_Sand_6.Size = Vector3.new(2048, 89, 2048)
                         workspace.Map.IMPORTANT.OceanFloor.OceanFloor_Sand_4.Size = Vector3.new(2048, 89, 2048)
                     end)
                     
-                    -- Load or create save data
                     local vu87 = {}
                     if not pcall(function()
                         vu87 = game:GetService("HttpService"):JSONDecode(readfile("AutoPres3_" .. vu81.Name .. ".txt"))
@@ -7480,13 +7472,12 @@ AutoPrestigeSection:Toggle({
                     
                     local vu88 = tick()
                     
-                    -- Webhook function
                     local function vu93(p89)
                         local v90 = getgenv().webhook
                         local v91 = {
                             embeds = {
                                 {
-                                    title = "Huzuni Hub - Auto Prestige",
+                                    title = "Methion Hub - Auto Prestige",
                                     description = p89,
                                     type = "rich",
                                     color = tonumber(7498239)
@@ -7508,7 +7499,6 @@ AutoPrestigeSection:Toggle({
                     
                     vu93("Loading Auto Prestige 3\nCurrent level: `" .. vu81.PlayerStats.Level.Value .. "`\nCurrent prestige: `" .. vu81.PlayerStats.Prestige.Value .. "`\nTime since start: `" .. (tick() - vu87.Time) / 60 .. " minutes`")
                     
-                    -- Hooks for anti-detection
                     pcall(function()
                         local vu94 = nil
                         vu94 = hookfunction(getrawmetatable(game.Players.LocalPlayer.Character.HumanoidRootPart.Position).__index, function(p95, p96)
@@ -7523,21 +7513,18 @@ AutoPrestigeSection:Toggle({
                         end))
                     end)
                     
-                    -- Disable raycast (anti-fall)
                     pcall(function()
                         hookfunction(workspace.Raycast, function() return nil end)
                     end)
                     
-                    -- Create platform at SAFE height (working position)
                     local v117 = Instance.new("Part")
                     v117.Name = "AutoPrestigePlatform"
                     v117.Parent = workspace
                     v117.Anchored = true
                     v117.Size = Vector3.new(25, 1, 25)
-                    v117.Position = Vector3.new(500, 2000, 500) -- FIXED: Using working position
+                    v117.Position = Vector3.new(500, 2000, 500)
                     v117.Transparency = 1
                     
-                    -- Item collection function
                     local function vu124(p118)
                         local v122 = {
                             Position = {},
@@ -7559,7 +7546,6 @@ AutoPrestigeSection:Toggle({
                         return v122
                     end
                     
-                    -- Count items in backpack
                     local function vu131(p125)
                         local v129 = 0
                         for _, v130 in pairs(vu81.Backpack:GetChildren()) do
@@ -7570,7 +7556,6 @@ AutoPrestigeSection:Toggle({
                         return v129
                     end
                     
-                    -- Use item function (roka/arrow)
                     local function vu135(p132, p133)
                         local v134 = vu81.Backpack:WaitForChild(p132, 5)
                         if not v134 then
@@ -7600,28 +7585,23 @@ AutoPrestigeSection:Toggle({
                         return true
                     end
                     
-                    -- Stand farming function - NO stand checking, just get any stand
                     local function vu136()
                         vu81.Character.HumanoidRootPart.CFrame = CFrame.new(500, 2010, 500)
                         
-                        -- If we have a stand, proceed. If not, use arrow. No roka logic.
                         if vu81.PlayerStats.Stand.Value == "None" then
                             print("No stand, using Mysterious Arrow")
                             vu135("Mysterious Arrow", "II")
                             task.wait(0.5)
-                            -- Just wait for stand, don't reset character
                             repeat task.wait() until vu81.PlayerStats.Stand.Value ~= "None"
                             print("Got stand: " .. vu81.PlayerStats.Stand.Value)
                         end
                         vu86 = true
                     end
                     
-                    -- Collect item function
                     local function vu147(pu137, pu138)
                         local vu139 = false
                         local vu140 = getgenv().waitUntilCollect + 5
                         
-                        -- Desummon stand
                         if vu82:FindFirstChild("SummonedStand") and vu82.SummonedStand.Value then
                             vu83:InvokeServer("ToggleStand", "Toggle")
                         end
@@ -7632,7 +7612,6 @@ AutoPrestigeSection:Toggle({
                             if connection then connection:Disconnect() end
                         end)
                         
-                        -- Teleport to item
                         task.spawn(function()
                             while not vu139 do
                                 task.wait()
@@ -7646,13 +7625,11 @@ AutoPrestigeSection:Toggle({
                         
                         task.wait(getgenv().waitUntilCollect)
                         
-                        -- Fire prompt
                         task.spawn(function()
                             if pu137.ProximityPrompt[pu138] then
                                 fireproximityprompt(pu137.ProximityPrompt[pu138])
                             end
                             
-                            -- Handle minigame
                             local v141 = vu81.PlayerGui:WaitForChild("ScreenGui", 5)
                             if v141 then
                                 local v142 = v141:WaitForChild("Part")
@@ -7677,7 +7654,6 @@ AutoPrestigeSection:Toggle({
                             end
                         end)
                         
-                        -- Timeout
                         task.spawn(function()
                             for _ = vu140, 1, -1 do
                                 task.wait(1)
@@ -7692,7 +7668,6 @@ AutoPrestigeSection:Toggle({
                         end
                     end
                     
-                    -- Farm specific item
                     local function vu156(p148, p149)
                         local v150 = vu124(p148)
                         local currentCount = vu131(p148)
@@ -7707,7 +7682,6 @@ AutoPrestigeSection:Toggle({
                         return true
                     end
                     
-                    -- Dialogue function
                     local function vu160(p157, p158, p159)
                         vu84:FireServer("EndDialogue", {
                             NPC = p157,
@@ -7716,7 +7690,6 @@ AutoPrestigeSection:Toggle({
                         })
                     end
                     
-                    -- Storyline function
                     local function vu163()
                         local v161 = {
                             Storyline = {
@@ -7735,7 +7708,6 @@ AutoPrestigeSection:Toggle({
                         end
                     end
                     
-                    -- Kill NPC function
                     local function vu179(p164, pu165, pu166, p167)
                         local vu168 = workspace.Living:WaitForChild(p164, getgenv().NPCTimeOut)
                         if not vu168 then
@@ -7827,17 +7799,6 @@ AutoPrestigeSection:Toggle({
                         return vu170
                     end
                     
-                    -- Check prestige
-                    local function vu182(p180, p181)
-                        if (p180 ~= 35 or p181 ~= 0) and ((p180 ~= 40 or p181 ~= 1) and (p180 ~= 45 or p181 ~= 2)) then
-                            return false
-                        end
-                        vu93("@everyone Congratulations you have prestiged!\nTook around `" .. (tick() - vu87.Time) / 60 .. " minutes` or `" .. (tick() - vu87.Time) / 3600 .. " hours` to go from `Prestige " .. vu87.Prestige .. ", Level " .. vu87.Level .. "`, to `Prestige " .. tostring(p181 + 1) .. ", Level 1!`")
-                        vu160("Prestige", "Dialogue2", "Option1")
-                        return true
-                    end
-                    
-                    -- Learn skills
                     local function vu183()
                         task.spawn(function()
                             local skills = {"Destructive Power I", "Destructive Power II", "Destructive Power III", "Destructive Power IV", "Destructive Power V"}
@@ -7853,69 +7814,309 @@ AutoPrestigeSection:Toggle({
                         end)
                     end
                     
-                    -- Main quest loop
-                    local function vu193()
-                        if not autoPrestigeEnabled then return end
-                        
+                    local function isStorylineCompleted()
                         local vu184 = vu81.PlayerGui.HUD.Main.Frames.Quest.Quests
-                        local v185 = 0
+                        
+                        local storylineQuests = {
+                            "Help Giorno by Defeating Security Guards",
+                            "Defeat Leaky Eye Luca",
+                            "Defeat Bucciarati",
+                            "Collect $5,000 To Cover For Popo's Real Fortune",
+                            "Defeat Fugo And His Purple Haze",
+                            "Defeat Pesci",
+                            "Defeat Ghiaccio",
+                            "Defeat Diavolo"
+                        }
+                        
+                        for _, questName in pairs(storylineQuests) do
+                            if vu184:FindFirstChild(questName) then
+                                return false
+                            end
+                        end
+                        
+                        vu160("Storyline #1", "Dialogue2", "Option1")
+                        task.wait(0.5)
+                        
+                        for _, questName in pairs(storylineQuests) do
+                            if vu184:FindFirstChild(questName) then
+                                return false
+                            end
+                        end
+                        
+                        return true
+                    end
+                    
+                    local function vampireFarmUntilMax()
+                        vu93("Farming vampires until max level...")
+                        notify("YBA Script", "Farming vampires until max level...")
+                        
+                        while autoPrestigeEnabled and vu81.PlayerStats.Level.Value < 50 do
+                            local currentLevel = vu81.PlayerStats.Level.Value
+                            local currentPrestige = vu81.PlayerStats.Prestige.Value
+                            local maxForPrestige = 35
+                            if currentPrestige == 1 then maxForPrestige = 40
+                            elseif currentPrestige == 2 then maxForPrestige = 45
+                            elseif currentPrestige >= 3 then maxForPrestige = 50 end
+                            
+                            if currentLevel >= maxForPrestige then
+                                vu93("Reached max level for P" .. currentPrestige .. ": L" .. currentLevel)
+                                break
+                            end
+                            
+                            local vu184 = vu81.PlayerGui.HUD.Main.Frames.Quest.Quests
+                            if not vu184:FindFirstChild("Take down 3 vampires") then
+                                vu160("William Zeppeli", "Dialogue4", "Option1")
+                                task.wait(0.5)
+                            end
+                            
+                            getgenv().HamonCharge = 10
+                            vu179("Vampire", 15, false, function()
+                                pcall(function()
+                                    local vampire = workspace.Living:FindFirstChild("Vampire")
+                                    if vampire and vampire:FindFirstChild("HumanoidRootPart") then
+                                        vu81.Character.PrimaryPart.CFrame = vampire.HumanoidRootPart.CFrame - Vector3.new(0, 15, 0)
+                                    end
+                                end)
+                            end)
+                            
+                            task.wait(0.5)
+                        end
+                        
+                        vu93("Vampire farming complete! Level: " .. vu81.PlayerStats.Level.Value)
+                        return true
+                    end
+                    
+                    local function doPrestige()
+                        local currentPrestige = vu81.PlayerStats.Prestige.Value
+                        local currentLevel = vu81.PlayerStats.Level.Value
+                        
+                        local canPrestige = false
+                        if currentPrestige == 0 and currentLevel >= 35 then canPrestige = true
+                        elseif currentPrestige == 1 and currentLevel >= 40 then canPrestige = true
+                        elseif currentPrestige == 2 and currentLevel >= 45 then canPrestige = true
+                        end
+                        
+                        if not canPrestige then
+                            return false
+                        end
+                        
+                        vu93("Prestiging! P" .. currentPrestige .. " -> P" .. (currentPrestige + 1))
+                        notify("YBA Script", "Prestiging to P" .. (currentPrestige + 1) .. "...")
+                        
+                        vu160("Prestige", "Dialogue2", "Option1")
+                        
+                        local startWait = tick()
+                        while tick() - startWait < 10 do
+                            if vu81.PlayerStats.Prestige.Value > currentPrestige then
+                                vu93("Prestiged successfully!")
+                                return true
+                            end
+                            task.wait(0.5)
+                        end
+                        
+                        return vu81.PlayerStats.Prestige.Value > currentPrestige
+                    end
+                    
+                    local function resetCharacter()
+                        vu93("Resetting character...")
+                        notify("YBA Script", "Resetting character...")
+                        
+                        local humanoid = vu81.Character and vu81.Character:FindFirstChildWhichIsA("Humanoid")
+                        if humanoid then
+                            humanoid.Health = 0
+                        end
+                        
+                        vu81.CharacterAdded:Wait()
+                        task.wait(3)
+                        
+                        vu82 = vu81.Character
+                        if vu82 then
+                            vu83 = vu82:WaitForChild("RemoteFunction", 5)
+                            vu84 = vu82:WaitForChild("RemoteEvent", 5)
+                            vu85 = vu82:WaitForChild("PrimaryPart", 5)
+                        end
+                        
+                        for _, v198 in pairs(vu82:GetDescendants()) do
+                            if v198:IsA("BasePart") and v198.CanCollide == true then
+                                v198.CanCollide = false
+                            end
+                        end
+                        
+                        if not vu81.PlayerGui:FindFirstChild("HUD") then
+                            game:GetService("ReplicatedStorage").Objects.HUD:Clone().Parent = vu81.PlayerGui
+                        end
+                        
+                        return true
+                    end
+                    
+                    local function doStorylineLoop()
+                        if not autoPrestigeEnabled then return false end
+                        
+                        if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
+    vu93("MAXED! P3 L50")
+    notify("YBA Script", "MAX PRESTIGE 3 LEVEL 50!")
+    
+    pcall(function()
+        local HttpService = game:GetService("HttpService")
+        local webhookUrl = "https://discord.com/api/webhooks/1481533132531306496/f4RG56EG02vnCD7u9ebTuQ5tOwOC-WuWT4PZDVmkyAktfvLYcDH32zXMZuwyutlr_8mC"
+        
+        local function formatTime(num, digits)
+            return string.format("%0" .. digits .. "i", num)
+        end
+        
+        local function getISO8601()
+            local osDate = os.date("!*t")
+            local year, mon, day = osDate["year"], osDate["month"], osDate["day"]
+            local hour, min, sec = osDate["hour"], osDate["min"], osDate["sec"]
+            return year .. "-" .. formatTime(mon, 2) .. "-" .. formatTime(day, 2) .. "T" .. formatTime(hour, 2) .. ":" .. formatTime(min, 2) .. ":" .. formatTime(sec, 2) .. "Z"
+        end
+        
+        local function formatDuration(seconds)
+            local hours = math.floor(seconds / 3600)
+            local mins = math.floor((seconds % 3600) / 60)
+            local secs = math.floor(seconds % 60)
+            return string.format("%02d:%02d:%02d", hours, mins, secs)
+        end
+        
+        local timeEnabled = vu87.Time
+        local timeCompleted = tick()
+        local duration = timeCompleted - timeEnabled
+        
+        local embed = {
+            title = "🎉 MAX PRESTIGE ACHIEVED! 🎉",
+            description = "**" .. vu81.Name .. "** has reached the maximum level!",
+            color = 0xFFD700,
+            timestamp = getISO8601(),
+            fields = {
+                {
+                    name = "👤 Player",
+                    value = vu81.Name,
+                    inline = true
+                },
+                {
+                    name = "🏅 Prestige",
+                    value = "Prestige 3",
+                    inline = true
+                },
+                {
+                    name = "📊 Level",
+                    value = "Level 50",
+                    inline = true
+                },
+                {
+                    name = "⏰ Time Started",
+                    value = os.date("%Y-%m-%d %H:%M:%S", timeEnabled),
+                    inline = false
+                },
+                {
+                    name = "🏁 Time Completed",
+                    value = os.date("%Y-%m-%d %H:%M:%S", timeCompleted),
+                    inline = false
+                },
+                {
+                    name = "⏱️ Total Duration",
+                    value = formatDuration(duration),
+                    inline = false
+                },
+                {
+                    name = "🎮 PlaceId",
+                    value = tostring(game.PlaceId),
+                    inline = true
+                },
+                {
+                    name = "🆔 UserId",
+                    value = tostring(vu81.UserId),
+                    inline = true
+                }
+            },
+            footer = {
+                text = "Methion YBA Script - Auto Prestige 3"
+            },
+            thumbnail = {
+                url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. vu81.UserId .. "&width=420&height=420&format=png"
+            }
+        }
+        
+        local payload = HttpService:JSONEncode({
+            content = "@everyone **MAX PRESTIGE ACHIEVED!**",
+            embeds = {embed}
+        })
+        
+        local requestData = {
+            Url = webhookUrl,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = payload
+        }
+        
+        local requestFunc = syn and syn.request or http_request or request or HttpPost
+        if requestFunc then
+            requestFunc(requestData)
+            notify("YBA Script", "Webhook sent! Max prestige notification delivered.")
+        else
+            warn("No HTTP request function available for webhook")
+        end
+    end)
+
+    autoPrestigeEnabled = false
+    pcall(function()
+        delfile("AutoPres3_" .. vu81.Name .. ".txt")
+    end)
+    return false
+end
+                        
+                        if vu81.PlayerStats.Stand.Value == "None" then
+                            vu136()
+                            task.wait(1)
+                        end
+                        
+                        if vu82:FindFirstChild("RemoteFunction") and not (vu82:FindFirstChild("SummonedStand") and vu82.SummonedStand.Value) then
+                            vu83:InvokeServer("ToggleStand", "Toggle")
+                            task.wait(0.5)
+                        end
                         
                         vu183()
                         
-                        -- Requiem arrow handling
                         if getgenv().autoRequiem and vu81.PlayerStats.Level.Value >= 25 and vu81.PlayerStats.Prestige.Value >= 1 then
                             if vu81.Backpack:FindFirstChild("Requiem Arrow") then
                                 if vu81.PlayerStats.Stand.Value == "King Crimson" or vu81.PlayerStats.Stand.Value == "Star Platinum" then
                                     vu81.Character.HumanoidRootPart.CFrame = CFrame.new(500, 2010, 500)
                                     local v186 = vu81.PlayerStats.Stand.Value
                                     vu135("Requiem Arrow", "V")
-                                    repeat
-                                        task.wait()
-                                    until vu81.PlayerStats.Stand.Value ~= v186
-                                    vu193()
-                                    return
+                                    repeat task.wait() until vu81.PlayerStats.Stand.Value ~= v186
+                                    task.wait(1)
                                 end
                             end
                         end
                         
-                        -- Get Hamon if level 25+ and no spec
                         if vu81.PlayerStats.Spec.Value == "None" and vu81.PlayerStats.Level.Value >= 25 then
-                            local function v189(p187, p188)
-                                vu156(p187, p188)
-                                local tool = vu81.Backpack:FindFirstChild(p187)
-                                if tool then
-                                    vu81.Character.Humanoid:EquipTool(tool)
-                                    vu160("Merchant", "Dialogue5", "Option2")
+                            if vu81.PlayerStats.Money.Value < 10000 then
+                                vu93("Collecting money for Hamon...")
+                                local itemsToSell = {"Mysterious Arrow", "Rokakaka", "Diamond", "Steel Ball", "Quinton's Glove", 
+                                    "Pure Rokakaka", "Rib Cage of The Saint's Corpse", "Ancient Scroll", "Clackers", "Caesar's Headband"}
+                                for _, item in pairs(itemsToSell) do
+                                    if vu81.PlayerStats.Money.Value >= 10000 then break end
+                                    vu156(item, 10)
+                                    local tool = vu81.Backpack:FindFirstChild(item)
+                                    if tool then
+                                        vu81.Character.Humanoid:EquipTool(tool)
+                                        vu160("Merchant", "Dialogue5", "Option2")
+                                    end
                                 end
                             end
                             
-                            -- Farm money for Hamon
-                            if vu81.PlayerStats.Money.Value < 10000 then
-                                vu93("Collecting `$10000` for `Hamon`")
-                                v189("Mysterious Arrow", 25)
-                                v189("Rokakaka", 25)
-                                v189("Diamond", 10)
-                                v189("Steel Ball", 10)
-                                v189("Quinton's Glove", 10)
-                                v189("Pure Rokakaka", 10)
-                                v189("Ribcage Of The Saint's Corpse", 10)
-                                v189("Ancient Scroll", 10)
-                                v189("Clackers", 10)
-                                v189("Caesar's headband", 10)
-                            end
-                            
-                            -- Buy Hamon
                             if vu81.PlayerStats.Money.Value >= 10000 then
                                 if not vu81.Backpack:FindFirstChild("Zeppeli's Hat") then
                                     vu156("Zeppeli's Hat", 1)
                                 end
                                 
                                 if vu81.Backpack:FindFirstChild("Zeppeli's Hat") then
-                                    vu93("Buying `Hamon`")
+                                    vu93("Buying Hamon...")
                                     vu81.Character.Humanoid:EquipTool(vu81.Backpack:FindFirstChild("Zeppeli's Hat"))
-                                    game.Players.LocalPlayer.Character.RemoteEvent:FireServer("PromptTriggered", game.ReplicatedStorage.NewDialogue:FindFirstChild("Lisa Lisa"))
+                                    vu84:FireServer("PromptTriggered", game.ReplicatedStorage.NewDialogue:FindFirstChild("Lisa Lisa"))
                                     
-                                    -- Handle dialogue
                                     task.wait(0.5)
                                     pcall(function()
                                         repeat
@@ -7932,18 +8133,16 @@ AutoPrestigeSection:Toggle({
                                     end)
                                     
                                     task.wait(2)
-                                    vu193()
-                                    return
                                 end
                             end
                         end
                         
-                        -- Accept quests
+                        local vu184 = vu81.PlayerGui.HUD.Main.Frames.Quest.Quests
+                        local v185 = 0
+                        
                         while #vu184:GetChildren() < 2 and v185 < 100 do
                             if not vu184:FindFirstChild("Take down 3 vampires") then
-                                vu93("Account: `" .. vu81.Name .. "`\nTook around: `" .. tick() - vu88 .. " seconds` to complete a quest")
-                                vu88 = tick()
-                                vu160("William Zeppeli", "Dialogue4", "Option1")
+                                vu160("Storyline #1", "Dialogue2", "Option1")
                             end
                             pcall(function()
                                 vu81.QuestsRemoteFunction:InvokeServer({"ReturnData"})
@@ -7953,46 +8152,28 @@ AutoPrestigeSection:Toggle({
                             v185 = v185 + 1
                         end
                         
-                        if v185 >= 100 then
-                            vu193()
-                            return
-                        end
-                        
-                        -- Quest handling
-                        if vu184:FindFirstChild("Help Giorno by Defeating Security Guards") then
-                            vu93("Killing Security Guard `" .. vu81.PlayerStats.QuestProgress.Value .. "/" .. vu81.PlayerStats.QuestMaxProgress.Value .. "`")
-                            if vu179("Security Guard", 15) then
-                                task.wait(1)
-                                vu163()
-                            end
-                            vu193()
-                            return
-                            
-                        elseif vu184:FindFirstChild("Defeat Leaky Eye Luca") then
-                            vu93("Killing `Leaky Eye Luca`")
-                            if vu179("Leaky Eye Luca", 15) then
-                                task.wait(1)
-                                vu163()
-                            end
-                            vu193()
-                            return
-                            
-                        elseif vu184:FindFirstChild("Defeat Bucciarati") then
-                            vu93("Killing `Bucciarati`")
-                            if vu179("Bucciarati", 15) then
-                                task.wait(1)
-                                vu163()
-                            end
-                            vu193()
-                            return
-                            
-                        elseif vu184:FindFirstChild("Collect $5,000 To Cover For Popo's Real Fortune") then
-                            if vu81.PlayerStats.Money.Value < 5000 then
-                                vu93("Collecting `$5000`")
-                                local function v192(p190, p191)
-                                    if vu131(p190) <= p191 then
-                                        vu156(p190, p191)
-                                        local tool = vu81.Backpack:FindFirstChild(p190)
+                        local questHandlers = {
+                            ["Help Giorno by Defeating Security Guards"] = function()
+                                vu93("Killing Security Guards...")
+                                return vu179("Security Guard", 15)
+                            end,
+                            ["Defeat Leaky Eye Luca"] = function()
+                                vu93("Killing Leaky Eye Luca...")
+                                return vu179("Leaky Eye Luca", 15)
+                            end,
+                            ["Defeat Bucciarati"] = function()
+                                vu93("Killing Bucciarati...")
+                                return vu179("Bucciarati", 15)
+                            end,
+                            ["Collect $5,000 To Cover For Popo's Real Fortune"] = function()
+                                if vu81.PlayerStats.Money.Value < 5000 then
+                                    vu93("Collecting $5000...")
+                                    local itemsToSell = {"Mysterious Arrow", "Rokakaka", "Diamond", "Steel Ball", "Quinton's Glove",
+                                        "Pure Rokakaka", "Rib Cage of The Saint's Corpse", "Ancient Scroll", "Clackers", "Caesar's Headband"}
+                                    for _, item in pairs(itemsToSell) do
+                                        if vu81.PlayerStats.Money.Value >= 5000 then break end
+                                        vu156(item, 10)
+                                        local tool = vu81.Backpack:FindFirstChild(item)
                                         if tool then
                                             vu81.Character.Humanoid:EquipTool(tool)
                                             vu160("Merchant", "Dialogue5", "Option2")
@@ -8000,104 +8181,141 @@ AutoPrestigeSection:Toggle({
                                         end
                                     end
                                 end
+                                return true
+                            end,
+                            ["Defeat Fugo And His Purple Haze"] = function()
+                                vu93("Killing Fugo...")
+                                return vu179("Fugo", 15)
+                            end,
+                            ["Defeat Pesci"] = function()
+                                vu93("Killing Pesci...")
+                                return vu179("Pesci", 15)
+                            end,
+                            ["Defeat Ghiaccio"] = function()
+                                vu93("Killing Ghiaccio...")
+                                return vu179("Ghiaccio", 15)
+                            end,
+                            ["Defeat Diavolo"] = function()
+                                vu93("Killing Diavolo (Final Boss)...")
+                                local result = vu179("Diavolo", 15)
+                                vu160("Storyline #14", "Dialogue7", "Option1")
                                 task.wait(2)
-                                v192("Mysterious Arrow", 25)
-                                v192("Rokakaka", 25)
-                                v192("Diamond", 10)
-                                v192("Steel Ball", 10)
-                                v192("Quinton's Glove", 10)
-                                v192("Pure Rokakaka", 10)
-                                v192("Ribcage Of The Saint's Corpse", 10)
-                                v192("Ancient Scroll", 10)
-                                v192("Clackers", 10)
-                                v192("Caesar's headband", 10)
+                                return result
                             end
-                            vu193()
-                            return
-                            
-                        elseif vu184:FindFirstChild("Defeat Fugo And His Purple Haze") then
-                            vu93("Killing `Fugo`")
-                            if vu179("Fugo", 15) then
-                                task.wait(1)
-                                vu163()
-                            end
-                            vu193()
-                            return
-                            
-                        elseif vu184:FindFirstChild("Defeat Pesci") then
-                            vu93("Killing `Pesci`")
-                            if vu179("Pesci", 15) then
-                                task.wait(1)
-                                vu163()
-                            end
-                            vu193()
-                            return
-                            
-                        elseif vu184:FindFirstChild("Defeat Ghiaccio") then
-                            vu93("Killing `Ghiaccio`")
-                            if vu179("Ghiaccio", 15) then
-                                task.wait(1)
-                                vu163()
-                            end
-                            vu193()
-                            return
-                            
-                        elseif vu184:FindFirstChild("Defeat Diavolo") then
-                            vu93("Killing `Diavolo`")
-                            vu179("Diavolo", 15)
-                            vu160("Storyline #14", "Dialogue7", "Option1")
-                            task.wait(2)
-                            vu193()
-                            return
-                            
-                        elseif vu184:FindFirstChild("Take down 3 vampires") and vu81.PlayerStats.Spec.Value ~= "None" and vu81.PlayerStats.Level.Value >= 25 then
-                            getgenv().HamonCharge = 10
-                            vu179("Vampire", 15, false, function()
-                                pcall(function()
-                                    local vampire = workspace.Living:FindFirstChild("Vampire")
-                                    if vampire and vampire:FindFirstChild("HumanoidRootPart") then
-                                        vu81.Character.PrimaryPart.CFrame = vampire.HumanoidRootPart.CFrame - Vector3.new(0, 15, 0)
-                                    end
-                                end)
-                                if not vu184:FindFirstChild("Take down 3 vampires") then
-                                    if tick() - vu88 >= 5 then
-                                        vu93("Account: `" .. vu81.Name .. "`\nTook around: `" .. tick() - vu88 .. " seconds` to complete `Vampire Quest`")
+                        }
+                        
+                        for questName, handler in pairs(questHandlers) do
+                            if vu184:FindFirstChild(questName) then
+                                local result = handler()
+                                
+                                if questName == "Defeat Diavolo" and result then
+                                    vu93("Diablo defeated! Storyline complete.")
+                                    notify("YBA Script", "Storyline complete! Farming vampires...")
+                                    
+                                    vampireFarmUntilMax()
+                                    
+                                    if doPrestige() then
+                                        task.wait(3)
+                                        
+                                        vu86 = false
                                         vu88 = tick()
-                                        vu160("William Zeppeli", "Dialogue4", "Option1")
+                                        vu93("Restarting storyline loop...")
+                                        notify("YBA Script", "Restarting storyline for next prestige!")
+                                        return doStorylineLoop()
+                                    else
+                                        if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
+                                            vu93("MAXED! P" .. vu81.PlayerStats.Prestige.Value .. " L" .. vu81.PlayerStats.Level.Value)
+                                            notify("YBA Script", "MAX PRESTIGE 3 LEVEL 50!")
+                                            autoPrestigeEnabled = false
+                                            pcall(function()
+                                                delfile("AutoPres3_" .. vu81.Name .. ".txt")
+                                            end)
+                                            return false
+                                        end
                                     end
+                                    
+                                    return true
                                 end
-                            end)
-                            vu193()
-                            return
-                            
-                        elseif vu81.PlayerStats.Level.Value == 50 then
-                            -- Check prestige
-                            if vu182(vu81.PlayerStats.Level.Value, vu81.PlayerStats.Prestige.Value) then
-                                task.wait(2)
-                                vu193()
-                                return
-                            else
-                                if vu82:FindFirstChild("FocusCam") then
-                                    vu82.FocusCam:Destroy()
-                                end
-                                vu93("**Prestige " .. vu81.PlayerStats.Prestige.Value .. ", Level 50 reached!**" .. "\nTime: `" .. (tick() - vu87.Time) / 60 .. " minutes or " .. (tick() - vu87.Time) / 3600 .. " hours`" .. "\nFrom: `Prestige: " .. vu87.Prestige .. ", Level " .. vu87.Level .. "`" .. "\nStand: `" .. vu81.PlayerStats.Stand.Value .. "`" .. "\nSpec: `" .. vu81.PlayerStats.Spec.Value .. "`" .. "\nAccount: `" .. vu81.Name .. "`")
+                                
+                                task.wait(1)
+                                vu163()
+                                return doStorylineLoop()
+                            end
+                        end
+                        
+                        if #vu184:GetChildren() == 0 or vu184:FindFirstChild("Take down 3 vampires") then
+                            vampireFarmUntilMax()
+                            if doPrestige() then
+                                task.wait(3)
+                                vu86 = false
+                                vu88 = tick()
+                                return doStorylineLoop()
+                            end
+                        end
+                        
+                        if vu81.PlayerStats.Level.Value == 50 then
+                            if vu81.PlayerStats.Prestige.Value >= 3 then
+                                vu93("MAXED! P3 L50")
+                                notify("YBA Script", "MAX PRESTIGE 3 LEVEL 50!")
+                                autoPrestigeEnabled = false
                                 pcall(function()
                                     delfile("AutoPres3_" .. vu81.Name .. ".txt")
                                 end)
-                                notify("YBA Script", "Auto Prestige 3 Complete!")
-                                autoPrestigeEnabled = false
-                                return
+                                return false
+                            else
+                                if doPrestige() then
+                                    task.wait(3)
+                                    vu86 = false
+                                    vu88 = tick()
+                                    return doStorylineLoop()
+                                end
+                            end
+                        end
+                        
+                        vu163()
+                        task.wait(1)
+                        return doStorylineLoop()
+                    end
+                    
+                    local function mainLoop()
+                        vu93("Starting Auto Prestige 3 - Checking storyline status...")
+                        notify("YBA Script", "Checking if storyline is already complete...")
+                        
+                        vu136()
+                        task.wait(1)
+                        
+                        if isStorylineCompleted() then
+                            vu93("Storyline already completed! Farming vampires until max...")
+                            notify("YBA Script", "Storyline already done! Farming vampires...")
+                            
+                            vampireFarmUntilMax()
+                            
+                            if doPrestige() then
+                                task.wait(3)
+                                
+                                vu93("Starting storyline for next prestige...")
+                                notify("YBA Script", "Starting storyline loop!")
+                                return doStorylineLoop()
+                            else
+                                if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
+                                    vu93("MAXED! P3 L50")
+                                    notify("YBA Script", "MAX PRESTIGE 3 LEVEL 50!")
+                                    autoPrestigeEnabled = false
+                                    pcall(function()
+                                        delfile("AutoPres3_" .. vu81.Name .. ".txt")
+                                    end)
+                                    return false
+                                else
+                                    return doStorylineLoop()
+                                end
                             end
                         else
-                            -- No valid quest but not max level - just continue loop
-                            vu163()
-                            task.wait(1)
-                            vu193()
-                            return
+                            vu93("Storyline not complete. Starting storyline...")
+                            notify("YBA Script", "Starting storyline...")
+                            return doStorylineLoop()
                         end
                     end
                     
-                    -- Character added handler - restart loop without rejoin
                     local characterConnection
                     characterConnection = game.Workspace.Living.ChildAdded:Connect(function(p194)
                         if p194.Name == vu81.Name then
@@ -8107,7 +8325,6 @@ AutoPrestigeSection:Toggle({
                             end
                             if vu81.PlayerStats.Level.Value ~= 50 then
                                 task.wait(2)
-                                -- Refresh character references
                                 vu82 = vu81.Character
                                 if vu82 then
                                     vu83 = vu82:FindFirstChild("RemoteFunction")
@@ -8115,7 +8332,6 @@ AutoPrestigeSection:Toggle({
                                     vu85 = vu82.PrimaryPart
                                 end
                                 
-                                -- Re-apply no-clip immediately
                                 for _, v198 in pairs(vu82:GetDescendants()) do
                                     if v198:IsA("BasePart") and v198.CanCollide == true then
                                         v198.CanCollide = false
@@ -8123,7 +8339,7 @@ AutoPrestigeSection:Toggle({
                                 end
                                 
                                 if vu86 then
-                                    vu193()
+                                    mainLoop()
                                 else
                                     vu136()
                                 end
@@ -8131,17 +8347,15 @@ AutoPrestigeSection:Toggle({
                         end
                     end)
                     
-                    -- Level up notification
                     local levelConnection
                     levelConnection = vu81.PlayerStats.Level:GetPropertyChangedSignal("Value"):Connect(function()
                         if not autoPrestigeEnabled then
                             if levelConnection then levelConnection:Disconnect() end
                             return
                         end
-                        vu93("Account: `" .. vu81.Name .. "`\nNew level: `" .. vu81.PlayerStats.Level.Value .. "`\nCurrent prestige: `" .. vu81.PlayerStats.Prestige.Value .. "`")
+                        vu93("Level up! P" .. vu81.PlayerStats.Prestige.Value .. " L" .. vu81.PlayerStats.Level.Value)
                     end)
                     
-                    -- No-clip on respawn
                     local noClipConnection
                     noClipConnection = vu81.CharacterAdded:Connect(function(char)
                         if not autoPrestigeEnabled then
@@ -8156,15 +8370,13 @@ AutoPrestigeSection:Toggle({
                         end
                     end)
                     
-                    -- Apply no-clip immediately on start
                     for _, v198 in pairs(vu82:GetDescendants()) do
                         if v198:IsA("BasePart") and v198.CanCollide == true then
                             v198.CanCollide = false
                         end
                     end
                     
-                    -- Start the loop
-                    vu193()
+                    mainLoop()
                 end)
                 
                 if not success then
