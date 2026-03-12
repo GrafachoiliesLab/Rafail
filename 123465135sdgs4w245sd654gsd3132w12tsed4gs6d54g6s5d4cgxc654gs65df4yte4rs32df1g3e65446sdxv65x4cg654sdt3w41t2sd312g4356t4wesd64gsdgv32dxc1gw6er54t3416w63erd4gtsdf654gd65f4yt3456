@@ -43,7 +43,7 @@ WindUI:Popup({
         }
     }
 })
-setclipboard("https://discord.gg/J7gdn2QknC")
+setclipboard("https://discord.gg/f5yZnXgVfP")
 loadstring(game:HttpGet("https://raw.githubusercontent.com/weatherwess-lgtm/FlyToggle/refs/heads/main/Clipboard"))()
 local Window = WindUI:CreateWindow({
     Title = "YBA Script",
@@ -284,7 +284,7 @@ AboutTab:Button({
     Title = "Copy Discord Invite",
     Icon = "copy",
     Callback = function()
-        setclipboard("https://discord.gg/J7gdn2QknC")
+        setclipboard("https://discord.gg/f5yZnXgVfP")
         notify("Methion Hub", "Discord invite copied. Paste it like you mean it.")
     end
 })
@@ -8278,23 +8278,17 @@ end
                     end
                     
                     local function mainLoop()
-                        vu93("Starting Auto Prestige 3 - Checking storyline status...")
-                        notify("YBA Script", "Checking if storyline is already complete...")
-                        
+
                         vu136()
                         task.wait(1)
                         
                         if isStorylineCompleted() then
-                            vu93("Storyline already completed! Farming vampires until max...")
-                            notify("YBA Script", "Storyline already done! Farming vampires...")
-                            
+
                             vampireFarmUntilMax()
                             
                             if doPrestige() then
                                 task.wait(3)
                                 
-                                vu93("Starting storyline for next prestige...")
-                                notify("YBA Script", "Starting storyline loop!")
                                 return doStorylineLoop()
                             else
                                 if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
