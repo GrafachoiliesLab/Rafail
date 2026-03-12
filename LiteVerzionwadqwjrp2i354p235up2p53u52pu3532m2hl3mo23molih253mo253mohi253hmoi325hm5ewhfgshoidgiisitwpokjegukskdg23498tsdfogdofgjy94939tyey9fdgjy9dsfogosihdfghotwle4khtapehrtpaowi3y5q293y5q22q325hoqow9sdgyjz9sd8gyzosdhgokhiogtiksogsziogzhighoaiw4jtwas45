@@ -4470,7 +4470,6 @@ local function CollectRokaArrow()
     end
     
     if collected.Rokakaka and collected["Mysterious Arrow"] then
-        notify("YBA Script", "Items collected! Farming for good stand...")
         
         local maxAttempts = 100
         local attempts = 0
@@ -4498,7 +4497,6 @@ local function CollectRokaArrow()
                     local roka = player.Backpack:FindFirstChild("Rokakaka") or Character:FindFirstChild("Rokakaka")
                     
                     if not roka then
-                        notify("YBA Script", "No Rokakaka! Collecting more...")
                         collected.Rokakaka = false
                         collected["Mysterious Arrow"] = false
                         break
@@ -4571,7 +4569,6 @@ local function CollectRokaArrow()
                 local arrow = player.Backpack:FindFirstChild("Mysterious Arrow") or Character:FindFirstChild("Mysterious Arrow")
                 
                 if not arrow then
-                    notify("YBA Script", "No arrows! Collecting more...")
                     collected.Rokakaka = false
                     collected["Mysterious Arrow"] = false
                     break
