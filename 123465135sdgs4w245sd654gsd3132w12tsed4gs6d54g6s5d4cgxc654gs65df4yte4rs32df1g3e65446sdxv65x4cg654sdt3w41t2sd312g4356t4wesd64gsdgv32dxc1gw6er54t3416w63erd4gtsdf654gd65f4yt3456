@@ -284,7 +284,7 @@ AboutTab:Button({
     Title = "Copy Discord Invite",
     Icon = "copy",
     Callback = function()
-        setclipboard("https://discord.gg/f5yZnXgVfP")
+        setclipboard("https://discord.gg/J7gdn2QknC")
         notify("Methion Hub", "Discord invite copied. Paste it like you mean it.")
     end
 })
