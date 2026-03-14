@@ -7970,7 +7970,7 @@ end
                             local vu184 = vu81.PlayerGui.HUD.Main.Frames.Quest.Quests
                             if not vu184:FindFirstChild("Take down 3 vampires") then
                                 vu160("William Zeppeli", "Dialogue4", "Option1")
-                                task.wait(0.5)
+                                task.wait(0.1)
                             end
                             
                             getgenv().HamonCharge = 10
@@ -7983,7 +7983,7 @@ end
                                 end)
                             end)
                             
-                            task.wait(0.5)
+                            task.wait(0.1)
                         end
                         
                         vu93("Vampire farming complete! Level: " .. vu81.PlayerStats.Level.Value)
@@ -8015,7 +8015,7 @@ end
                                 vu93("Prestiged successfully!")
                                 return true
                             end
-                            task.wait(0.5)
+                            task.wait(0.1)
                         end
                         
                         return vu81.PlayerStats.Prestige.Value > currentPrestige
