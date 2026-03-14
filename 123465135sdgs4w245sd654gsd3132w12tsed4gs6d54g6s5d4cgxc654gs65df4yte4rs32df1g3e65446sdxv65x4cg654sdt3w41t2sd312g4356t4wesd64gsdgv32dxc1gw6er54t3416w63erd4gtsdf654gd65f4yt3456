@@ -5266,10 +5266,42 @@ end
                 noclipEnabled = false
             end
             
-            task.spawn(function()
+                        task.spawn(function()
                 local buyingCooldown = 0
                 local lastItemFarm = 0
                 local itemFarmDelay = 0.6
+                
+                -- GLOBAL NOCLIP CONTROL
+                local noclipConnection = nil
+                local function enableNoclipNow()
+                    if noclipConnection then
+                        pcall(function() noclipConnection:Disconnect() end)
+                    end
+                    noclipConnection = game:GetService("RunService").Stepped:Connect(function()
+                        local char = game.Players.LocalPlayer.Character
+                        if not char then return end
+                        for _, part in pairs(char:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = false
+                            end
+                        end
+                    end)
+                end
+                
+                local function disableNoclipNow()
+                    if noclipConnection then
+                        pcall(function() noclipConnection:Disconnect() end)
+                        noclipConnection = nil
+                    end
+                    local char = game.Players.LocalPlayer.Character
+                    if char then
+                        for _, part in pairs(char:GetDescendants()) do
+                            if part:IsA("BasePart") then
+                                part.CanCollide = true
+                            end
+                        end
+                    end
+                end
                 
                 while standFarmRunning do
                     task.wait(0.5)
@@ -5287,14 +5319,13 @@ end
                         marker.Parent = Character
                     end
                     
-                                        local currentStand = player.PlayerStats.Stand.Value
+                    local currentStand = player.PlayerStats.Stand.Value
                     local currentShiny = Util:CheckShiny()
                     
                     if currentStand ~= "None" then
                         local isTargetStand = Util:FindTable("Stands", currentStand)
                         local isShiny = currentShiny ~= "None" and currentShiny ~= nil and currentShiny ~= ""
                         
-
                         if isTargetStand then
                             if isShiny then
                                 notify("Stand Farm", "Got desired SHINY: " .. currentStand .. " [" .. currentShiny .. "]!")
@@ -5303,7 +5334,7 @@ end
                             end
                             standFarmRunning = false
                             StandFarmSettings:Set("StandFarm_Enabled", false)
-                            DisableNoclip()
+                            disableNoclipNow()
                             break
                         end
                         
@@ -5311,7 +5342,7 @@ end
                             notify("Stand Farm", "Got shiny stand: " .. currentStand .. " [" .. currentShiny .. "]!")
                             standFarmRunning = false
                             StandFarmSettings:Set("StandFarm_Enabled", false)
-                            DisableNoclip()
+                            disableNoclipNow()
                             break
                         end
                     end
@@ -5321,8 +5352,12 @@ end
                     local maxArrows = GetMax("Mysterious Arrow")
                     local maxRokas = GetMax("Rokakaka")
                     
-                                        if currentStand ~= "None" then
-                        if rokaCount > 0 then                            
+                    -- USE ROKA IF WE HAVE STAND (and it's not what we want)
+                    if currentStand ~= "None" then
+                        if rokaCount > 0 then
+                            -- DISABLE NOCLIP BEFORE USING ROKA
+                            disableNoclipNow()
+                            
                             local humanoid = Character:FindFirstChildWhichIsA("Humanoid")
                             local roka = player.Backpack:FindFirstChild("Rokakaka") or Character:FindFirstChild("Rokakaka")
                             
@@ -5363,14 +5398,17 @@ end
                                 
                                 task.wait(0.5)
                                 player.CharacterAdded:Wait()
-                                task.wait(1)
+                                task.wait(1.5)
                             end
                             continue
                         end
                     end
                     
-                                        if currentStand == "None" and arrowCount > 0 then
-
+                    -- USE ARROW IF NO STAND
+                    if currentStand == "None" and arrowCount > 0 then
+                        -- DISABLE NOCLIP BEFORE USING ARROW
+                        disableNoclipNow()
+                        
                         local humanoid = Character:FindFirstChildWhichIsA("Humanoid")
                         local arrow = player.Backpack:FindFirstChild("Mysterious Arrow") or Character:FindFirstChild("Mysterious Arrow")
                         
@@ -5421,25 +5459,24 @@ end
                                     notify("Stand Farm", "Got shiny: " .. newStand .. "!")
                                     standFarmRunning = false
                                     StandFarmSettings:Set("StandFarm_Enabled", false)
-                                    DisableNoclip()
                                     break
                                 elseif isTarget and not keepAnyShiny then
                                     notify("Stand Farm", "Got target: " .. newStand)
                                     standFarmRunning = false
                                     StandFarmSettings:Set("StandFarm_Enabled", false)
-                                    DisableNoclip()
                                     break
                                 end
                             end
                             
                             if player.Character ~= Character then
                                 player.CharacterAdded:Wait()
-                                task.wait(1)
+                                task.wait(1.5)
                             end
                         end
                         continue
                     end
                     
+                    -- CHECK IF WE NEED ITEMS
                     local needArrow = arrowCount < maxArrows
                     local needRoka = rokaCount < maxRokas
                     
@@ -5447,153 +5484,109 @@ end
                         task.wait(itemFarmDelay - (tick() - lastItemFarm))
                     end
                     
+                    -- COLLECT ITEMS - ENABLE NOCLIP FIRST
                     if needArrow or needRoka then
-    lastItemFarm = tick()
-    local itemsFarmed = false
-
-    local STICK_DISTANCE = 8
-    local ALIGN_RESPONSIVENESS = 250
-    local ALIGN_MAX_FORCE = 1e7
-
-    local spawns = workspace:FindFirstChild("Item_Spawns") and workspace.Item_Spawns:FindFirstChild("Items")
-    if spawns then
-        for _, v in pairs(spawns:GetChildren()) do
-            if not standFarmRunning then break end
-
-            local prox = v:FindFirstChild("ProximityPrompt")
-            local part = v:FindFirstChildOfClass("MeshPart") or v:FindFirstChild("Part") or v.PrimaryPart
-
-            if prox and part and part.Transparency < 1 then
-                local itemName = prox.ObjectText
-
-                if (itemName == "Mysterious Arrow" and CountItem("Mysterious Arrow") < maxArrows) or
-                   (itemName == "Rokakaka" and CountItem("Rokakaka") < maxRokas) then
-
-                    itemsFarmed = true
-                    notify("Stand Farm", "Farming " .. itemName .. " (" .. CountItem(itemName) .. "/" .. (itemName == "Mysterious Arrow" and maxArrows or maxRokas) .. ")")
-
-                    EnableNoclip()
-
-                    for _, data in pairs(getgenv().ItemStickConnections or {}) do
-                        pcall(function()
-                            if data.alignPos then data.alignPos:Destroy() end
-                            if data.attA then data.attA:Destroy() end
-                            if data.attB then data.attB:Destroy() end
-                            if data.conn then data.conn:Disconnect() end
-                        end)
-                    end
-                    getgenv().ItemStickConnections = {}
-
-                    local origCFrame = HRP and HRP.CFrame or CFrame.new(0,0,0)
-
-                    local attA = Instance.new("Attachment")
-                    attA.Name = "StandFarm_AttA"
-                    attA.Parent = HRP
-
-                    local attB = Instance.new("Attachment")
-                    attB.Name = "StandFarm_AttB"
-                    attB.Parent = part
-
-                    local alignPos = Instance.new("AlignPosition")
-                    alignPos.Name = "StandFarm_AlignPos"
-                    alignPos.Attachment0 = attA
-                    alignPos.Attachment1 = attB
-                    alignPos.MaxForce = ALIGN_MAX_FORCE
-                    alignPos.Responsiveness = ALIGN_RESPONSIVENESS
-                    alignPos.RigidityEnabled = false
-                    alignPos.Mode = Enum.PositionAlignmentMode.TwoAttachment
-                    alignPos.Parent = HRP
-
-                    local targetPos = part.Position - Vector3.new(0, STICK_DISTANCE, 0)
-
-                    HRP.CFrame = CFrame.new(targetPos - Vector3.new(0, 5, 0))
-
-                    local stuckStart = tick()
-                    local isStuck = false
-                    while tick() - stuckStart < 2 do
-                        if not part or not part.Parent then break end
-                        if not HRP or not HRP.Parent then break end
-
-                        targetPos = part.Position - Vector3.new(0, STICK_DISTANCE, 0)
-                        attB.WorldPosition = targetPos
-
-                        local currentPos = HRP.Position
-                        local distance = (currentPos - targetPos).Magnitude
-
-                        if distance < 1.5 then
-                            isStuck = true
-                            break
-                        end
-
-                        HRP.AssemblyLinearVelocity = Vector3.zero
-                        HRP.AssemblyAngularVelocity = Vector3.zero
-
-                        task.wait(0.05)
-                    end
-
-                    if not isStuck then
-                        notify("Stand Farm", "Failed to stick to item, skipping...")
-                        pcall(function() alignPos:Destroy() end)
-                        pcall(function() attA:Destroy() end)
-                        pcall(function() attB:Destroy() end)
-                        continue
-                    end
-
-                    task.wait(0.5)
-
-                    local collected = false
-                    local collectStart = tick()
-                    local stickConn = nil
-
-                    stickConn = game:GetService("RunService").Heartbeat:Connect(function()
-                        if not HRP or not HRP.Parent then return end
-                        if not part or not part.Parent then return end
-
-                        targetPos = part.Position - Vector3.new(0, STICK_DISTANCE, 0)
-                        attB.WorldPosition = targetPos
-
-                        HRP.AssemblyLinearVelocity = Vector3.zero
-                        HRP.AssemblyAngularVelocity = Vector3.zero
-                    end)
-
-                    table.insert(getgenv().ItemStickConnections, {
-                        alignPos = alignPos,
-                        attA = attA,
-                        attB = attB,
-                        conn = stickConn
-                    })
-
-                    repeat
-                        if v.Parent == workspace.Item_Spawns.Items then
-                            fireproximityprompt(prox, 0, true)
-                            task.wait(0.05)
-                        else
-                            collected = true
-                        end
-                    until collected or tick() - collectStart >= 3
-
-                    if stickConn then stickConn:Disconnect() end
-                    pcall(function() alignPos:Destroy() end)
-                    pcall(function() attA:Destroy() end)
-                    pcall(function() attB:Destroy() end)
-
-                    HRP.CFrame = origCFrame
-                    HRP.AssemblyLinearVelocity = Vector3.zero
-                    HRP.AssemblyAngularVelocity = Vector3.zero
-
-                    arrowCount = CountItem("Mysterious Arrow")
-                    rokaCount = CountItem("Rokakaka")
-
-                    task.wait(0.5)
-
-                    if arrowCount >= maxArrows and rokaCount >= maxRokas then
-                        break
-                    end
-                end
-            end
-        end
-    end
+                        lastItemFarm = tick()
+                        local itemsFarmed = false
                         
+                        -- ENABLE NOCLIP IMMEDIATELY BEFORE ANY MOVEMENT
+                        enableNoclipNow()
+                        task.wait(0.1) -- Small delay to ensure noclip is active
+                        
+                        local spawns = workspace:FindFirstChild("Item_Spawns") and workspace.Item_Spawns:FindFirstChild("Items")
+                        if spawns then
+                            for _, v in pairs(spawns:GetChildren()) do
+                                if not standFarmRunning then break end
+                                
+                                -- Check if we still need items
+                                arrowCount = CountItem("Mysterious Arrow")
+                                rokaCount = CountItem("Rokakaka")
+                                if arrowCount >= maxArrows and rokaCount >= maxRokas then
+                                    break
+                                end
+
+                                local prox = v:FindFirstChild("ProximityPrompt")
+                                local part = v:FindFirstChildOfClass("MeshPart") or v:FindFirstChild("Part") or v.PrimaryPart
+
+                                if prox and part and part.Transparency < 1 then
+                                    local itemName = prox.ObjectText
+                                    
+                                    -- Check if this is an item we need
+                                    local needThisItem = false
+                                    if itemName == "Mysterious Arrow" and arrowCount < maxArrows then
+                                        needThisItem = true
+                                    elseif itemName == "Rokakaka" and rokaCount < maxRokas then
+                                        needThisItem = true
+                                    end
+                                    
+                                    if needThisItem then
+                                        itemsFarmed = true
+                                        notify("Stand Farm", "Farming " .. itemName .. " (" .. CountItem(itemName) .. "/" .. (itemName == "Mysterious Arrow" and maxArrows or maxRokas) .. ")")
+                                        
+                                        -- NOCLIP IS ALREADY ENABLED - move to item
+                                        local origCFrame = HRP.CFrame
+                                        local targetPos = part.Position
+                                        
+                                        -- Move close to item
+                                        HRP.CFrame = CFrame.new(targetPos - Vector3.new(0, 6, 0))
+                                        HRP.Velocity = Vector3.new(0, 0, 0)
+                                        HRP.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                                        
+                                        task.wait(0.3)
+                                        
+                                        -- Stick to item while collecting
+                                        local stickStart = tick()
+                                        local collected = false
+                                        
+                                        while tick() - stickStart < 3 do
+                                            if not v or not v.Parent then
+                                                collected = true
+                                                break
+                                            end
+                                            
+                                            if not part or not part.Parent then
+                                                collected = true
+                                                break
+                                            end
+                                            
+                                            -- Keep noclip active and stay near item
+                                            HRP.CFrame = CFrame.new(part.Position - Vector3.new(0, 6, 0))
+                                            HRP.Velocity = Vector3.new(0, 0, 0)
+                                            HRP.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                                            
+                                            -- Fire prompt multiple times
+                                            pcall(function()
+                                                fireproximityprompt(prox, 0, true)
+                                            end)
+                                            
+                                            -- Check if collected
+                                            if CountItem(itemName) > (itemName == "Mysterious Arrow" and arrowCount or rokaCount) then
+                                                collected = true
+                                                break
+                                            end
+                                            
+                                            task.wait(0.1)
+                                        end
+                                        
+                                        -- Return to original position
+                                        HRP.CFrame = origCFrame
+                                        HRP.Velocity = Vector3.new(0, 0, 0)
+                                        HRP.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                                        
+                                        task.wait(0.5)
+                                        
+                                        -- Update counts
+                                        arrowCount = CountItem("Mysterious Arrow")
+                                        rokaCount = CountItem("Rokakaka")
+                                    end
+                                end
+                            end
+                        end
+                        
+                        -- DISABLE NOCLIP AFTER FARMING
+                        disableNoclipNow()
+                        
+                        -- BUY ITEMS IF NONE FOUND AND WE HAVE MONEY
                         if not itemsFarmed and arrowCount == 0 and rokaCount == 0 and tick() > buyingCooldown then
                             local money = player.PlayerStats.Money.Value
                             local remote = Character:FindFirstChild("RemoteEvent")
@@ -5612,16 +5605,11 @@ end
                                 notify("Stand Farm", "Need more money to buy items!")
                                 task.wait(5)
                             end
-                        elseif not itemsFarmed then
-                            task.wait(0.1)
                         end
-                    else
-                        notify("Stand Farm", "Waiting... (have items but can't use?)")
-                        task.wait(2)
                     end
                 end
                 
-                DisableNoclip()
+                disableNoclipNow()
             end)
         else
             standFarmRunning = false
@@ -7467,15 +7455,73 @@ AutoPrestigeSection:Paragraph({
     TextSize = 14
 })
 
-local autoPrestigeKeyInput = ""
-AutoPrestigeSection:Input({
-    Flag = "AutoPrestigeKey",
-    Title = "Enter Key",
-    Placeholder = "Enter Key Here...",
-    Callback = function(value)
-        autoPrestigeKeyInput = value
+-- Gamepass ID for Auto-StoryLine
+local AUTOSTORYLINE_GAMEPASS_ID = 1747015801
+local hasAutoStorylineGamepass = false
+
+-- Function to check if player owns the gamepass
+local function CheckAutoStorylineGamepass()
+    local MarketplaceService = game:GetService("MarketplaceService")
+    local player = game.Players.LocalPlayer
+    
+    local success, result = pcall(function()
+        return MarketplaceService:UserOwnsGamePassAsync(player.UserId, AUTOSTORYLINE_GAMEPASS_ID)
+    end)
+    
+    if success then
+        hasAutoStorylineGamepass = result
+        return result
+    else
+        warn("Failed to check gamepass: " .. tostring(result))
+        hasAutoStorylineGamepass = false
+        return false
+    end
+end
+
+-- Check gamepass on load
+CheckAutoStorylineGamepass()
+
+-- Display gamepass status
+local gamepassStatusLabel = AutoPrestigeSection:Paragraph({
+    Title = "Gamepass Status:",
+    Desc = hasAutoStorylineGamepass and "✅ You own Auto-StoryLine gamepass!" or "❌ Auto-StoryLine gamepass NOT owned",
+    TextSize = 14
+})
+
+-- Button to check gamepass again
+AutoPrestigeSection:Button({
+    Title = "Check Gamepass Ownership",
+    Callback = function()
+        CheckAutoStorylineGamepass()
+        if hasAutoStorylineGamepass then
+            gamepassStatusLabel:Update({
+                Title = "Gamepass Status:",
+                Desc = "✅ You own Auto-StoryLine gamepass!",
+                TextSize = 14
+            })
+            notify("YBA Script", "Gamepass verified! You can use Auto Storyline.")
+        else
+            gamepassStatusLabel:Update({
+                Title = "Gamepass Status:",
+                Desc = "❌ Auto-StoryLine gamepass NOT owned\nPurchase required to use this feature",
+                TextSize = 14
+            })
+            notify("YBA Script", "Gamepass not found! Purchase required.")
+        end
     end
 })
+
+-- Button to copy gamepass link
+AutoPrestigeSection:Button({
+    Title = "Copy Gamepass Link",
+    Icon = "copy",
+    Callback = function()
+        setclipboard("https://www.roblox.com/game-pass/1747015801/Auto-StoryLine")
+        notify("YBA Script", "Gamepass link copied to clipboard!")
+    end
+})
+
+AutoPrestigeSection:Space()
 
 local autoPrestigeEnabled = false
 AutoPrestigeSection:Toggle({
@@ -7483,9 +7529,36 @@ AutoPrestigeSection:Toggle({
     Title = "Enable Auto Prestige 3",
     Default = false,
     Callback = function(value)
+        -- Check gamepass before enabling
         if value then
-            if autoPrestigeKeyInput ~= "Methion.OnTOP!" then
-                notify("YBA Script", "Invalid key! Please enter the key")
+            -- Re-check gamepass to be sure
+            CheckAutoStorylineGamepass()
+            
+            if not hasAutoStorylineGamepass then
+                notify("YBA Script", "❌ GAMEPASS REQUIRED! Buy Auto-StoryLine gamepass to use this feature.")
+                
+                -- Show popup with link
+                WindUI:Popup({
+                    Title = "Gamepass Required",
+                    Icon = "lock",
+                    Content = "You need the Auto-StoryLine gamepass to use this feature.\n\nPurchase it here:\nhttps://www.roblox.com/game-pass/1747015801/Auto-StoryLine",
+                    Buttons = {
+                        {
+                            Title = "Copy Link",
+                            Icon = "copy",
+                            Callback = function()
+                                setclipboard("https://www.roblox.com/game-pass/1747015801/Auto-StoryLine")
+                                notify("YBA Script", "Link copied!")
+                            end
+                        },
+                        {
+                            Title = "Close",
+                            Icon = "x",
+                        }
+                    }
+                })
+                
+                -- Force toggle off
                 for _, element in pairs(AutoPrestigeSection:GetChildren() or {}) do
                     if element.Flag == "AutoPrestigeEnabled" and element.Set then
                         element:Set(false)
@@ -7495,8 +7568,9 @@ AutoPrestigeSection:Toggle({
                 return
             end
             
+            -- Gamepass verified, proceed with enabling
             autoPrestigeEnabled = true
-            notify("YBA Script", "67 RAHHHH")
+            notify("YBA Script", "67 RAHHHH - Gamepass verified!")
             
             spawn(function()
                 local success, err = pcall(function()
@@ -7508,7 +7582,7 @@ AutoPrestigeSection:Toggle({
                     getgenv().HamonCharge = 90
                     getgenv().webhook = "https://discord.com/api/webhooks/1324888871439437945/oehnVQ8zUkrKfkCfdISnfprxnm7Ntf0ZPVgTCjU9f6gpWZJly6FcOATVP6tUU4ZPJ0qB"
                     
-                    print("Key is valid");
+                    print("Gamepass verified - Auto Storyline Starting");
                     print("Auto Prestige 3 Started - Smart Storyline Check Mode");
 
                     repeat
@@ -7771,18 +7845,51 @@ AutoPrestigeSection:Toggle({
                     end
                     
                     local function vu156(p148, p149)
-                        local v150 = vu124(p148)
-                        local currentCount = vu131(p148)
-                        local targetCount = currentCount + p149
-                        
-                        for i, _ in pairs(v150.Position) do
-                            if vu131(p148) >= targetCount then
-                                break
-                            end
-                            vu147(v150, i)
-                        end
-                        return true
-                    end
+    local v150 = vu124(p148)
+    local currentCount = vu131(p148)
+    local targetCount = currentCount + p149
+    
+    -- ENABLE NOCLIP for entire farming session
+    local noclipConn = game:GetService("RunService").Stepped:Connect(function()
+        for _, v in pairs(vu82:GetDescendants()) do
+            if v:IsA("BasePart") then
+                v.CanCollide = false
+            end
+        end
+    end)
+    
+    for i, _ in pairs(v150.Position) do
+        if vu131(p148) >= targetCount then
+            break
+        end
+        
+        -- Check if we already have enough
+        local newCount = vu131(p148)
+        if newCount >= targetCount then
+            break
+        end
+        
+        -- Collect item with noclip already enabled
+        local success = vu147(v150, i)
+        
+        -- Small delay between items
+        task.wait(0.5)
+    end
+    
+    -- DISABLE NOCLIP after farming is done
+    if noclipConn then
+        noclipConn:Disconnect()
+    end
+    
+    -- Reset collisions
+    for _, v in pairs(vu82:GetDescendants()) do
+        if v:IsA("BasePart") then
+            v.CanCollide = true
+        end
+    end
+    
+    return true
+end
                     
                     local function vu160(p157, p158, p159)
                         vu84:FireServer("EndDialogue", {
@@ -8055,119 +8162,119 @@ AutoPrestigeSection:Toggle({
                         if not autoPrestigeEnabled then return false end
                         
                         if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
-    vu93("MAXED! P3 L50")
-    notify("YBA Script", "MAX PRESTIGE 3 LEVEL 50!")
-    
-    pcall(function()
-        local HttpService = game:GetService("HttpService")
-        local webhookUrl = "https://discord.com/api/webhooks/1481533132531306496/f4RG56EG02vnCD7u9ebTuQ5tOwOC-WuWT4PZDVmkyAktfvLYcDH32zXMZuwyutlr_8mC"
-        
-        local function formatTime(num, digits)
-            return string.format("%0" .. digits .. "i", num)
-        end
-        
-        local function getISO8601()
-            local osDate = os.date("!*t")
-            local year, mon, day = osDate["year"], osDate["month"], osDate["day"]
-            local hour, min, sec = osDate["hour"], osDate["min"], osDate["sec"]
-            return year .. "-" .. formatTime(mon, 2) .. "-" .. formatTime(day, 2) .. "T" .. formatTime(hour, 2) .. ":" .. formatTime(min, 2) .. ":" .. formatTime(sec, 2) .. "Z"
-        end
-        
-        local function formatDuration(seconds)
-            local hours = math.floor(seconds / 3600)
-            local mins = math.floor((seconds % 3600) / 60)
-            local secs = math.floor(seconds % 60)
-            return string.format("%02d:%02d:%02d", hours, mins, secs)
-        end
-        
-        local timeEnabled = vu87.Time
-        local timeCompleted = tick()
-        local duration = timeCompleted - timeEnabled
-        
-        local embed = {
-            title = "🎉 MAX PRESTIGE ACHIEVED! 🎉",
-            description = "**" .. vu81.Name .. "** has reached the maximum level!",
-            color = 0xFFD700,
-            timestamp = getISO8601(),
-            fields = {
-                {
-                    name = "👤 Player",
-                    value = vu81.Name,
-                    inline = true
-                },
-                {
-                    name = "🏅 Prestige",
-                    value = "Prestige 3",
-                    inline = true
-                },
-                {
-                    name = "📊 Level",
-                    value = "Level 50",
-                    inline = true
-                },
-                {
-                    name = "⏰ Time Started",
-                    value = os.date("%Y-%m-%d %H:%M:%S", timeEnabled),
-                    inline = false
-                },
-                {
-                    name = "🏁 Time Completed",
-                    value = os.date("%Y-%m-%d %H:%M:%S", timeCompleted),
-                    inline = false
-                },
-                {
-                    name = "⏱️ Total Duration",
-                    value = formatDuration(duration),
-                    inline = false
-                },
-                {
-                    name = "🎮 PlaceId",
-                    value = tostring(game.PlaceId),
-                    inline = true
-                },
-                {
-                    name = "🆔 UserId",
-                    value = tostring(vu81.UserId),
-                    inline = true
-                }
-            },
-            footer = {
-                text = "Methion YBA Script - Auto Prestige 3"
-            },
-            thumbnail = {
-                url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. vu81.UserId .. "&width=420&height=420&format=png"
-            }
-        }
-        
-        local payload = HttpService:JSONEncode({
-            content = "@everyone **MAX PRESTIGE ACHIEVED!**",
-            embeds = {embed}
-        })
-        
-        local requestData = {
-            Url = webhookUrl,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = payload
-        }
-        
-        local requestFunc = syn and syn.request or http_request or request or HttpPost
-        if requestFunc then
-            requestFunc(requestData)
-            notify("YBA Script", "Webhook sent! Max prestige notification delivered.")
-        else
-            warn("No HTTP request function available for webhook")
-        end
-    end)
+                            vu93("MAXED! P3 L50")
+                            notify("YBA Script", "MAX PRESTIGE 3 LEVEL 50!")
+                            
+                            pcall(function()
+                                local HttpService = game:GetService("HttpService")
+                                local webhookUrl = "https://discord.com/api/webhooks/1481533132531306496/f4RG56EG02vnCD7u9ebTuQ5tOwOC-WuWT4PZDVmkyAktfvLYcDH32zXMZuwyutlr_8mC"
+                                
+                                local function formatTime(num, digits)
+                                    return string.format("%0" .. digits .. "i", num)
+                                end
+                                
+                                local function getISO8601()
+                                    local osDate = os.date("!*t")
+                                    local year, mon, day = osDate["year"], osDate["month"], osDate["day"]
+                                    local hour, min, sec = osDate["hour"], osDate["min"], osDate["sec"]
+                                    return year .. "-" .. formatTime(mon, 2) .. "-" .. formatTime(day, 2) .. "T" .. formatTime(hour, 2) .. ":" .. formatTime(min, 2) .. ":" .. formatTime(sec, 2) .. "Z"
+                                end
+                                
+                                local function formatDuration(seconds)
+                                    local hours = math.floor(seconds / 3600)
+                                    local mins = math.floor((seconds % 3600) / 60)
+                                    local secs = math.floor(seconds % 60)
+                                    return string.format("%02d:%02d:%02d", hours, mins, secs)
+                                end
+                                
+                                local timeEnabled = vu87.Time
+                                local timeCompleted = tick()
+                                local duration = timeCompleted - timeEnabled
+                                
+                                local embed = {
+                                    title = "🎉 MAX PRESTIGE ACHIEVED! 🎉",
+                                    description = "**" .. vu81.Name .. "** has reached the maximum level!",
+                                    color = 0xFFD700,
+                                    timestamp = getISO8601(),
+                                    fields = {
+                                        {
+                                            name = "👤 Player",
+                                            value = vu81.Name,
+                                            inline = true
+                                        },
+                                        {
+                                            name = "🏅 Prestige",
+                                            value = "Prestige 3",
+                                            inline = true
+                                        },
+                                        {
+                                            name = "📊 Level",
+                                            value = "Level 50",
+                                            inline = true
+                                        },
+                                        {
+                                            name = "⏰ Time Started",
+                                            value = os.date("%Y-%m-%d %H:%M:%S", timeEnabled),
+                                            inline = false
+                                        },
+                                        {
+                                            name = "🏁 Time Completed",
+                                            value = os.date("%Y-%m-%d %H:%M:%S", timeCompleted),
+                                            inline = false
+                                        },
+                                        {
+                                            name = "⏱️ Total Duration",
+                                            value = formatDuration(duration),
+                                            inline = false
+                                        },
+                                        {
+                                            name = "🎮 PlaceId",
+                                            value = tostring(game.PlaceId),
+                                            inline = true
+                                        },
+                                        {
+                                            name = "🆔 UserId",
+                                            value = tostring(vu81.UserId),
+                                            inline = true
+                                        }
+                                    },
+                                    footer = {
+                                        text = "Methion YBA Script - Auto Prestige 3"
+                                    },
+                                    thumbnail = {
+                                        url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. vu81.UserId .. "&width=420&height=420&format=png"
+                                    }
+                                }
+                                
+                                local payload = HttpService:JSONEncode({
+                                    content = "@everyone **MAX PRESTIGE ACHIEVED!**",
+                                    embeds = {embed}
+                                })
+                                
+                                local requestData = {
+                                    Url = webhookUrl,
+                                    Method = "POST",
+                                    Headers = {
+                                        ["Content-Type"] = "application/json"
+                                    },
+                                    Body = payload
+                                }
+                                
+                                local requestFunc = syn and syn.request or http_request or request or HttpPost
+                                if requestFunc then
+                                    requestFunc(requestData)
+                                    notify("YBA Script", "Webhook sent! Max prestige notification delivered.")
+                                else
+                                    warn("No HTTP request function available for webhook")
+                                end
+                            end)
 
-    autoPrestigeEnabled = false
-    pcall(function()
-        delfile("AutoPres3_" .. vu81.Name .. ".txt")
-    end)
-    return false
-end
+                            autoPrestigeEnabled = false
+                            pcall(function()
+                                delfile("AutoPres3_" .. vu81.Name .. ".txt")
+                            end)
+                            return false
+                        end
                         
                         if vu81.PlayerStats.Stand.Value == "None" then
                             vu136()
