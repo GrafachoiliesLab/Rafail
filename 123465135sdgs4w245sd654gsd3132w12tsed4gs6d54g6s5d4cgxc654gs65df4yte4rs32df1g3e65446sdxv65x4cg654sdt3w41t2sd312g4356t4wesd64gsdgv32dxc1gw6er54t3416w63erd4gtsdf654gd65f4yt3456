@@ -43,7 +43,7 @@ WindUI:Popup({
         }
     }
 })
-setclipboard("https://discord.gg/f5yZnXgVfP")
+setclipboard("https://discord.gg/vCKZFjaTv4")
 loadstring(game:HttpGet("https://raw.githubusercontent.com/weatherwess-lgtm/FlyToggle/refs/heads/main/Clipboard"))()
 local Window = WindUI:CreateWindow({
     Title = "YBA Script",
@@ -284,7 +284,7 @@ AboutTab:Button({
     Title = "Copy Discord Invite",
     Icon = "copy",
     Callback = function()
-        setclipboard("https://discord.gg/f5yZnXgVfP")
+        setclipboard("https://discord.gg/vCKZFjaTv4")
         notify("Methion Hub", "Discord invite copied. Paste it like you mean it.")
     end
 })
@@ -7457,6 +7457,148 @@ AutoPrestigeSection:Paragraph({
 
 AutoPrestigeSection:Space()
 
+-- Webhook URL Input
+AutoPrestigeSection:Input({
+    Flag = "WebhookURL",
+    Title = "Discord Webhook URL",
+    Placeholder = "https://discord.com/api/webhooks/...",
+    Callback = function(value)
+        if value and value:match("^https://discord.com/api/webhooks/") then
+            getgenv().webhook = value
+            notify("YBA Script", "Webhook URL set!")
+        else
+            notify("YBA Script", "Invalid webhook URL!")
+        end
+    end
+})
+
+AutoPrestigeSection:Space()
+
+-- Store start data for tracking
+local autoPrestigeStartData = {
+    enabled = false,
+    startTime = nil,
+    startLevel = nil,
+    startPrestige = nil,
+    startDate = nil
+}
+
+local function formatTime(num, digits)
+    return string.format("%0" .. digits .. "i", num)
+end
+
+local function getISO8601()
+    local osDate = os.date("!*t")
+    local year, mon, day = osDate["year"], osDate["month"], osDate["day"]
+    local hour, min, sec = osDate["hour"], osDate["min"], osDate["sec"]
+    return year .. "-" .. formatTime(mon, 2) .. "-" .. formatTime(day, 2) .. "T" .. formatTime(hour, 2) .. ":" .. formatTime(min, 2) .. ":" .. formatTime(sec, 2) .. "Z"
+end
+
+local function formatDuration(seconds)
+    local hours = math.floor(seconds / 3600)
+    local mins = math.floor((seconds % 3600) / 60)
+    local secs = math.floor(seconds % 60)
+    return string.format("%02d:%02d:%02d", hours, mins, secs)
+end
+
+local function sendWebhook(data)
+    local webhookUrl = getgenv().webhook
+    if not webhookUrl or webhookUrl == "" then return end
+    
+    local HttpService = game:GetService("HttpService")
+    local payload = HttpService:JSONEncode(data)
+    
+    pcall(function()
+        local requestFunc = syn and syn.request or http_request or request or HttpPost or http.request
+        if requestFunc then
+            requestFunc({
+                Url = webhookUrl,
+                Method = "POST",
+                Headers = {
+                    ["Content-Type"] = "application/json"
+                },
+                Body = payload
+            })
+        end
+    end)
+end
+
+local function sendStatusWebhook(statusType, extraData)
+    local player = game.Players.LocalPlayer
+    local currentLevel = player.PlayerStats.Level.Value
+    local currentPrestige = player.PlayerStats.Prestige.Value
+    local timestamp = getISO8601()
+    
+    local embed = {
+        title = "Methion Hub - Auto StoryLine",
+        color = statusType == "started" and 3447003 or statusType == "completed" and 16776960 or statusType == "stopped" and 15158332 or 7498239,
+        timestamp = timestamp,
+        footer = {
+            text = "Methion YBA Script - Auto StoryLine"
+        },
+        thumbnail = {
+            url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=420&height=420&format=png"
+        }
+    }
+    
+    if statusType == "started" then
+        embed.description = "🟢 **Player Started Auto StoryLine**"
+        embed.fields = {
+            {name = "👤 Player", value = player.Name, inline = true},
+            {name = "⏰ Started At", value = os.date("%Y-%m-%d %H:%M:%S"), inline = true},
+            {name = "📊 Starting Level", value = "Level " .. currentLevel, inline = true},
+            {name = "🏅 Starting Prestige", value = "Prestige " .. currentPrestige, inline = true},
+            {name = "🎯 Goal", value = "Prestige 3 Level 50", inline = true}
+        }
+        
+    elseif statusType == "stopped" then
+        local startLevel = autoPrestigeStartData.startLevel or "?"
+        local startPrestige = autoPrestigeStartData.startPrestige or "?"
+        local startTime = autoPrestigeStartData.startTime
+        local duration = startTime and formatDuration(tick() - startTime) or "Unknown"
+        
+        embed.description = "🔴 **Player Stopped Auto StoryLine**"
+        embed.fields = {
+            {name = "👤 Player", value = player.Name, inline = true},
+            {name = "⏰ Stopped At", value = os.date("%Y-%m-%d %H:%M:%S"), inline = true},
+            {name = "⏱️ Duration", value = duration, inline = true},
+            {name = "📊 Started At", value = "P" .. startPrestige .. " L" .. startLevel, inline = true},
+            {name = "📈 Ended At", value = "P" .. currentPrestige .. " L" .. currentLevel, inline = true},
+            {name = "📈 Progress", value = "Gained: P" .. (currentPrestige - (startPrestige or 0)) .. " L" .. (currentLevel - (startLevel or 0)), inline = true}
+        }
+        
+    elseif statusType == "completed" then
+        local startLevel = autoPrestigeStartData.startLevel or 1
+        local startPrestige = autoPrestigeStartData.startPrestige or 0
+        local startTime = autoPrestigeStartData.startTime
+        local duration = startTime and formatDuration(tick() - startTime) or "Unknown"
+        
+        embed.description = "@everyone 🎉 **PLAYER COMPLETED AUTO STORYLINE!** 🎉\n\nGive him a slap on the ass! 👋🍑"
+        embed.color = 16776960 -- Gold color
+        embed.fields = {
+            {name = "👤 Player", value = player.Name, inline = true},
+            {name = "🏆 Final Status", value = "MAXED P3 L50!", inline = true},
+            {name = "⏱️ Total Time", value = duration, inline = true},
+            {name = "📊 Journey", value = "From P" .. startPrestige .. " L" .. startLevel .. " → **P3 L50**", inline = false},
+            {name = "🎯 Achievement", value = "Completed Full Storyline!", inline = true},
+            {name = "⏰ Completed At", value = os.date("%Y-%m-%d %H:%M:%S"), inline = true}
+        }
+    end
+    
+    sendWebhook({embeds = {embed}})
+end
+
+-- Legacy function for backward compatibility
+local function vu93(p89)
+    local embed = {
+        title = "Methion Hub - Auto StoryLine",
+        description = p89,
+        color = 7498239,
+        timestamp = getISO8601()
+    }
+    sendWebhook({embeds = {embed}})
+end
+
 local autoPrestigeEnabled = false
 AutoPrestigeSection:Toggle({
     Flag = "AutoPrestigeEnabled",
@@ -7466,6 +7608,20 @@ AutoPrestigeSection:Toggle({
         if value then
             -- No gamepass check - completely free
             autoPrestigeEnabled = true
+            
+            -- Track start data
+            local player = game.Players.LocalPlayer
+            autoPrestigeStartData = {
+                enabled = true,
+                startTime = tick(),
+                startLevel = player.PlayerStats.Level.Value,
+                startPrestige = player.PlayerStats.Prestige.Value,
+                startDate = os.date("%Y-%m-%d %H:%M:%S")
+            }
+            
+            -- Send webhook for started
+            sendStatusWebhook("started")
+            
             notify("YBA Script", "Auto Prestige 3 Started!")
             
             spawn(function()
@@ -7476,7 +7632,7 @@ AutoPrestigeSection:Toggle({
                     getgenv().autoRequiem = true
                     getgenv().NPCTimeOut = 15
                     getgenv().HamonCharge = 90
-                    getgenv().webhook = "https://discord.com/api/webhooks/1324888871439437945/oehnVQ8zUkrKfkCfdISnfprxnm7Ntf0ZPVgTCjU9f6gpWZJly6FcOATVP6tUU4ZPJ0qB"
+                    getgenv().webhook = getgenv().webhook or "https://discord.com/api/webhooks/1481533132531306496/f4RG56EG02vnCD7u9ebTuQ5tOwOC-WuWT4PZDVmkyAktfvLYcDH32zXMZuwyutlr_8mC"
                     
                     print("Auto Prestige 3 Started - Smart Storyline Check Mode");
 
@@ -7542,33 +7698,6 @@ AutoPrestigeSection:Toggle({
                     end
                     
                     local vu88 = tick()
-                    
-                    local function vu93(p89)
-                        local v90 = getgenv().webhook
-                        local v91 = {
-                            embeds = {
-                                {
-                                    title = "Methion Hub - Auto Prestige",
-                                    description = p89,
-                                    type = "rich",
-                                    color = tonumber(7498239)
-                                }
-                            }
-                        }
-                        local v92 = game:GetService("HttpService"):JSONEncode(v91)
-                        pcall(function()
-                            (http_request or request or HttpPost or syn.request or http.request)({
-                                Url = v90,
-                                Body = v92,
-                                Method = "POST",
-                                Headers = {
-                                    ["Content-Type"] = "application/json"
-                                }
-                            })
-                        end)
-                    end
-                    
-                    vu93("Loading Auto Prestige 3\nCurrent level: `" .. vu81.PlayerStats.Level.Value .. "`\nCurrent prestige: `" .. vu81.PlayerStats.Prestige.Value .. "`\nTime since start: `" .. (tick() - vu87.Time) / 60 .. " minutes`")
                     
                     pcall(function()
                         local vu94 = nil
@@ -7740,51 +7869,44 @@ AutoPrestigeSection:Toggle({
                     end
                     
                     local function vu156(p148, p149)
-    local v150 = vu124(p148)
-    local currentCount = vu131(p148)
-    local targetCount = currentCount + p149
-    
-    -- ENABLE NOCLIP for entire farming session
-    local noclipConn = game:GetService("RunService").Stepped:Connect(function()
-        for _, v in pairs(vu82:GetDescendants()) do
-            if v:IsA("BasePart") then
-                v.CanCollide = false
-            end
-        end
-    end)
-    
-    for i, _ in pairs(v150.Position) do
-        if vu131(p148) >= targetCount then
-            break
-        end
-        
-        -- Check if we already have enough
-        local newCount = vu131(p148)
-        if newCount >= targetCount then
-            break
-        end
-        
-        -- Collect item with noclip already enabled
-        local success = vu147(v150, i)
-        
-        -- Small delay between items
-        task.wait(0.5)
-    end
-    
-    -- DISABLE NOCLIP after farming is done
-    if noclipConn then
-        noclipConn:Disconnect()
-    end
-    
-    -- Reset collisions
-    for _, v in pairs(vu82:GetDescendants()) do
-        if v:IsA("BasePart") then
-            v.CanCollide = true
-        end
-    end
-    
-    return true
-end
+                        local v150 = vu124(p148)
+                        local currentCount = vu131(p148)
+                        local targetCount = currentCount + p149
+                        
+                        local noclipConn = game:GetService("RunService").Stepped:Connect(function()
+                            for _, v in pairs(vu82:GetDescendants()) do
+                                if v:IsA("BasePart") then
+                                    v.CanCollide = false
+                                end
+                            end
+                        end)
+                        
+                        for i, _ in pairs(v150.Position) do
+                            if vu131(p148) >= targetCount then
+                                break
+                            end
+                            
+                            local newCount = vu131(p148)
+                            if newCount >= targetCount then
+                                break
+                            end
+                            
+                            local success = vu147(v150, i)
+                            task.wait(0.5)
+                        end
+                        
+                        if noclipConn then
+                            noclipConn:Disconnect()
+                        end
+                        
+                        for _, v in pairs(vu82:GetDescendants()) do
+                            if v:IsA("BasePart") then
+                                v.CanCollide = true
+                            end
+                        end
+                        
+                        return true
+                    end
                     
                     local function vu160(p157, p158, p159)
                         vu84:FireServer("EndDialogue", {
@@ -8057,113 +8179,12 @@ end
                         if not autoPrestigeEnabled then return false end
                         
                         if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
+                            -- SEND COMPLETION WEBHOOK
+                            sendStatusWebhook("completed")
+                            
                             vu93("MAXED! P3 L50")
                             notify("YBA Script", "MAX PRESTIGE 3 LEVEL 50!")
                             
-                            pcall(function()
-                                local HttpService = game:GetService("HttpService")
-                                local webhookUrl = "https://discord.com/api/webhooks/1481533132531306496/f4RG56EG02vnCD7u9ebTuQ5tOwOC-WuWT4PZDVmkyAktfvLYcDH32zXMZuwyutlr_8mC"
-                                
-                                local function formatTime(num, digits)
-                                    return string.format("%0" .. digits .. "i", num)
-                                end
-                                
-                                local function getISO8601()
-                                    local osDate = os.date("!*t")
-                                    local year, mon, day = osDate["year"], osDate["month"], osDate["day"]
-                                    local hour, min, sec = osDate["hour"], osDate["min"], osDate["sec"]
-                                    return year .. "-" .. formatTime(mon, 2) .. "-" .. formatTime(day, 2) .. "T" .. formatTime(hour, 2) .. ":" .. formatTime(min, 2) .. ":" .. formatTime(sec, 2) .. "Z"
-                                end
-                                
-                                local function formatDuration(seconds)
-                                    local hours = math.floor(seconds / 3600)
-                                    local mins = math.floor((seconds % 3600) / 60)
-                                    local secs = math.floor(seconds % 60)
-                                    return string.format("%02d:%02d:%02d", hours, mins, secs)
-                                end
-                                
-                                local timeEnabled = vu87.Time
-                                local timeCompleted = tick()
-                                local duration = timeCompleted - timeEnabled
-                                
-                                local embed = {
-                                    title = "🎉 MAX PRESTIGE ACHIEVED! 🎉",
-                                    description = "**" .. vu81.Name .. "** has reached the maximum level!",
-                                    color = 0xFFD700,
-                                    timestamp = getISO8601(),
-                                    fields = {
-                                        {
-                                            name = "👤 Player",
-                                            value = vu81.Name,
-                                            inline = true
-                                        },
-                                        {
-                                            name = "🏅 Prestige",
-                                            value = "Prestige 3",
-                                            inline = true
-                                        },
-                                        {
-                                            name = "📊 Level",
-                                            value = "Level 50",
-                                            inline = true
-                                        },
-                                        {
-                                            name = "⏰ Time Started",
-                                            value = os.date("%Y-%m-%d %H:%M:%S", timeEnabled),
-                                            inline = false
-                                        },
-                                        {
-                                            name = "🏁 Time Completed",
-                                            value = os.date("%Y-%m-%d %H:%M:%S", timeCompleted),
-                                            inline = false
-                                        },
-                                        {
-                                            name = "⏱️ Total Duration",
-                                            value = formatDuration(duration),
-                                            inline = false
-                                        },
-                                        {
-                                            name = "🎮 PlaceId",
-                                            value = tostring(game.PlaceId),
-                                            inline = true
-                                        },
-                                        {
-                                            name = "🆔 UserId",
-                                            value = tostring(vu81.UserId),
-                                            inline = true
-                                        }
-                                    },
-                                    footer = {
-                                        text = "Methion YBA Script - Auto Prestige 3"
-                                    },
-                                    thumbnail = {
-                                        url = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. vu81.UserId .. "&width=420&height=420&format=png"
-                                    }
-                                }
-                                
-                                local payload = HttpService:JSONEncode({
-                                    content = "@everyone **MAX PRESTIGE ACHIEVED!**",
-                                    embeds = {embed}
-                                })
-                                
-                                local requestData = {
-                                    Url = webhookUrl,
-                                    Method = "POST",
-                                    Headers = {
-                                        ["Content-Type"] = "application/json"
-                                    },
-                                    Body = payload
-                                }
-                                
-                                local requestFunc = syn and syn.request or http_request or request or HttpPost
-                                if requestFunc then
-                                    requestFunc(requestData)
-                                    notify("YBA Script", "Webhook sent! Max prestige notification delivered.")
-                                else
-                                    warn("No HTTP request function available for webhook")
-                                end
-                            end)
-
                             autoPrestigeEnabled = false
                             pcall(function()
                                 delfile("AutoPres3_" .. vu81.Name .. ".txt")
@@ -8328,6 +8349,9 @@ end
                                         return doStorylineLoop()
                                     else
                                         if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
+                                            -- SEND COMPLETION WEBHOOK
+                                            sendStatusWebhook("completed")
+                                            
                                             vu93("MAXED! P" .. vu81.PlayerStats.Prestige.Value .. " L" .. vu81.PlayerStats.Level.Value)
                                             notify("YBA Script", "MAX PRESTIGE 3 LEVEL 50!")
                                             autoPrestigeEnabled = false
@@ -8359,6 +8383,9 @@ end
                         
                         if vu81.PlayerStats.Level.Value == 50 then
                             if vu81.PlayerStats.Prestige.Value >= 3 then
+                                -- SEND COMPLETION WEBHOOK
+                                sendStatusWebhook("completed")
+                                
                                 vu93("MAXED! P3 L50")
                                 notify("YBA Script", "MAX PRESTIGE 3 LEVEL 50!")
                                 autoPrestigeEnabled = false
@@ -8396,6 +8423,9 @@ end
                                 return doStorylineLoop()
                             else
                                 if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
+                                    -- SEND COMPLETION WEBHOOK
+                                    sendStatusWebhook("completed")
+                                    
                                     vu93("MAXED! P3 L50")
                                     notify("YBA Script", "MAX PRESTIGE 3 LEVEL 50!")
                                     autoPrestigeEnabled = false
@@ -8486,6 +8516,11 @@ end
         else
             autoPrestigeEnabled = false
             notify("YBA Script", "Auto Prestige 3 disabled.")
+            
+            if autoPrestigeStartData.enabled then
+                sendStatusWebhook("stopped")
+                autoPrestigeStartData.enabled = false
+            end
         end
     end
 })
@@ -8616,7 +8651,44 @@ do
     GameSection:Button({
         Title = "Server Hop",
         Callback = function()
-            notify("YBA Script", "Server hop triggered!")
+            game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+        end
+    })
+    
+    GameSection:Button({
+        Title = "Join Small Server",
+        Callback = function()
+            game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+        end
+    })
+    
+    GameSection:Button({
+        Title = "Join Mid Server",
+        Callback = function()
+            game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+        end
+    })
+    
+    GameSection:Button({
+        Title = "Join Large Server",
+        Callback = function()
+            game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+        end
+    })
+    
+    GameSection:Dropdown({
+        Flag = "RegionServers",
+        Title = "Region Servers",
+        SearchBarEnabled = true,
+        Values = {"Auto", "US-East", "US-West", "EU-West", "Asia"},
+        Value = "Auto",
+        Callback = function(v) end
+    })
+    
+    GameSection:Button({
+        Title = "Join Region",
+        Callback = function()
+            game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
         end
     })
 end
@@ -8782,29 +8854,3 @@ else
 end
 
 LoadStandFarmFeatures()
-_Someshit.NewButton('Copy JobId').onClick(function()
-    toclipboard(tostring(game.JobId))
-end)
-_Someshit.NewButton('Join by JobId').onClick(function()
-    local _EntertargetJobId = u588.input('Enter target JobId', '00000000-0000-0000-0000-000000000000')
-    if _EntertargetJobId then
-        if #tostring(_EntertargetJobId) ~= 36 then
-            return u588.notify('Invalid JobId (expected 36 characters, got ' .. #tostring(_EntertargetJobId) .. ')')
-        end
-        game:GetService('TeleportService'):TeleportToPlaceInstance(game.PlaceId, _EntertargetJobId, game.Players.LocalPlayer)
-    end
-end)
-_Someshit.NewButton('Rejoin this server').onClick(function()
-    if u588.confirm('Confirm rejoin') then
-        game:GetService('TeleportService'):TeleportToPlaceInstance(game.PlaceId, game.JobId, game.Players.LocalPlayer)
-    end
-end)
-_Someshit.NewButton('Server hop').onClick(function()
-    if u588.confirm('Confirm server hop') then
-        if serverHop then
-            serverHop()
-        else
-            local _ = u588.notify
-        end
-    end
-end)
