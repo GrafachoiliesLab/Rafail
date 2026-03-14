@@ -7455,72 +7455,6 @@ AutoPrestigeSection:Paragraph({
     TextSize = 14
 })
 
--- Gamepass ID for Auto-StoryLine
-local AUTOSTORYLINE_GAMEPASS_ID = 1747015801
-local hasAutoStorylineGamepass = false
-
--- Function to check if player owns the gamepass
-local function CheckAutoStorylineGamepass()
-    local MarketplaceService = game:GetService("MarketplaceService")
-    local player = game.Players.LocalPlayer
-    
-    local success, result = pcall(function()
-        return MarketplaceService:UserOwnsGamePassAsync(player.UserId, AUTOSTORYLINE_GAMEPASS_ID)
-    end)
-    
-    if success then
-        hasAutoStorylineGamepass = result
-        return result
-    else
-        warn("Failed to check gamepass: " .. tostring(result))
-        hasAutoStorylineGamepass = false
-        return false
-    end
-end
-
--- Check gamepass on load
-CheckAutoStorylineGamepass()
-
--- Display gamepass status
-local gamepassStatusLabel = AutoPrestigeSection:Paragraph({
-    Title = "Gamepass Status:",
-    Desc = hasAutoStorylineGamepass and "✅ You own Auto-StoryLine gamepass!" or "❌ Auto-StoryLine gamepass NOT owned",
-    TextSize = 14
-})
-
--- Button to check gamepass again
-AutoPrestigeSection:Button({
-    Title = "Check Gamepass Ownership",
-    Callback = function()
-        CheckAutoStorylineGamepass()
-        if hasAutoStorylineGamepass then
-            gamepassStatusLabel:Update({
-                Title = "Gamepass Status:",
-                Desc = "✅ You own Auto-StoryLine gamepass!",
-                TextSize = 14
-            })
-            notify("YBA Script", "Gamepass verified! You can use Auto Storyline.")
-        else
-            gamepassStatusLabel:Update({
-                Title = "Gamepass Status:",
-                Desc = "❌ Auto-StoryLine gamepass NOT owned\nPurchase required to use this feature",
-                TextSize = 14
-            })
-            notify("YBA Script", "Gamepass not found! Purchase required.")
-        end
-    end
-})
-
--- Button to copy gamepass link
-AutoPrestigeSection:Button({
-    Title = "Copy Gamepass Link",
-    Icon = "copy",
-    Callback = function()
-        setclipboard("https://www.roblox.com/game-pass/1747015801/Auto-StoryLine")
-        notify("YBA Script", "Gamepass link copied to clipboard!")
-    end
-})
-
 AutoPrestigeSection:Space()
 
 local autoPrestigeEnabled = false
@@ -7529,48 +7463,10 @@ AutoPrestigeSection:Toggle({
     Title = "Enable Auto Prestige 3",
     Default = false,
     Callback = function(value)
-        -- Check gamepass before enabling
         if value then
-            -- Re-check gamepass to be sure
-            CheckAutoStorylineGamepass()
-            
-            if not hasAutoStorylineGamepass then
-                notify("YBA Script", "❌ GAMEPASS REQUIRED! Buy Auto-StoryLine gamepass to use this feature.")
-                
-                -- Show popup with link
-                WindUI:Popup({
-                    Title = "Gamepass Required",
-                    Icon = "lock",
-                    Content = "You need the Auto-StoryLine gamepass to use this feature.\n\nPurchase it here:\nhttps://www.roblox.com/game-pass/1747015801/Auto-StoryLine",
-                    Buttons = {
-                        {
-                            Title = "Copy Link",
-                            Icon = "copy",
-                            Callback = function()
-                                setclipboard("https://www.roblox.com/game-pass/1747015801/Auto-StoryLine")
-                                notify("YBA Script", "Link copied!")
-                            end
-                        },
-                        {
-                            Title = "Close",
-                            Icon = "x",
-                        }
-                    }
-                })
-                
-                -- Force toggle off
-                for _, element in pairs(AutoPrestigeSection:GetChildren() or {}) do
-                    if element.Flag == "AutoPrestigeEnabled" and element.Set then
-                        element:Set(false)
-                        break
-                    end
-                end
-                return
-            end
-            
-            -- Gamepass verified, proceed with enabling
+            -- No gamepass check - completely free
             autoPrestigeEnabled = true
-            notify("YBA Script", "67 RAHHHH - Gamepass verified!")
+            notify("YBA Script", "Auto Prestige 3 Started!")
             
             spawn(function()
                 local success, err = pcall(function()
@@ -7582,7 +7478,6 @@ AutoPrestigeSection:Toggle({
                     getgenv().HamonCharge = 90
                     getgenv().webhook = "https://discord.com/api/webhooks/1324888871439437945/oehnVQ8zUkrKfkCfdISnfprxnm7Ntf0ZPVgTCjU9f6gpWZJly6FcOATVP6tUU4ZPJ0qB"
                     
-                    print("Gamepass verified - Auto Storyline Starting");
                     print("Auto Prestige 3 Started - Smart Storyline Check Mode");
 
                     repeat
@@ -8594,8 +8489,6 @@ end
         end
     end
 })
-
-QuestFarmSection:Space()
 
 local autoPresOnMax = false
 QuestFarmSection:Toggle({
