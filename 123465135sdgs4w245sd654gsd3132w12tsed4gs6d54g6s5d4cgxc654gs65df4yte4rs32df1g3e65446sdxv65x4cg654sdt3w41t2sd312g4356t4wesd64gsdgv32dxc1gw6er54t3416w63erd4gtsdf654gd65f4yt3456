@@ -5271,7 +5271,6 @@ end
                 local lastItemFarm = 0
                 local itemFarmDelay = 0.6
                 
-                -- GLOBAL NOCLIP CONTROL
                 local noclipConnection = nil
                 local function enableNoclipNow()
                     if noclipConnection then
@@ -5352,10 +5351,8 @@ end
                     local maxArrows = GetMax("Mysterious Arrow")
                     local maxRokas = GetMax("Rokakaka")
                     
-                    -- USE ROKA IF WE HAVE STAND (and it's not what we want)
                     if currentStand ~= "None" then
                         if rokaCount > 0 then
-                            -- DISABLE NOCLIP BEFORE USING ROKA
                             disableNoclipNow()
                             
                             local humanoid = Character:FindFirstChildWhichIsA("Humanoid")
@@ -5404,9 +5401,7 @@ end
                         end
                     end
                     
-                    -- USE ARROW IF NO STAND
                     if currentStand == "None" and arrowCount > 0 then
-                        -- DISABLE NOCLIP BEFORE USING ARROW
                         disableNoclipNow()
                         
                         local humanoid = Character:FindFirstChildWhichIsA("Humanoid")
@@ -5476,7 +5471,6 @@ end
                         continue
                     end
                     
-                    -- CHECK IF WE NEED ITEMS
                     local needArrow = arrowCount < maxArrows
                     local needRoka = rokaCount < maxRokas
                     
@@ -5484,21 +5478,18 @@ end
                         task.wait(itemFarmDelay - (tick() - lastItemFarm))
                     end
                     
-                    -- COLLECT ITEMS - ENABLE NOCLIP FIRST
                     if needArrow or needRoka then
                         lastItemFarm = tick()
                         local itemsFarmed = false
                         
-                        -- ENABLE NOCLIP IMMEDIATELY BEFORE ANY MOVEMENT
                         enableNoclipNow()
-                        task.wait(0.1) -- Small delay to ensure noclip is active
+                        task.wait(0.1)
                         
                         local spawns = workspace:FindFirstChild("Item_Spawns") and workspace.Item_Spawns:FindFirstChild("Items")
                         if spawns then
                             for _, v in pairs(spawns:GetChildren()) do
                                 if not standFarmRunning then break end
                                 
-                                -- Check if we still need items
                                 arrowCount = CountItem("Mysterious Arrow")
                                 rokaCount = CountItem("Rokakaka")
                                 if arrowCount >= maxArrows and rokaCount >= maxRokas then
@@ -5511,7 +5502,6 @@ end
                                 if prox and part and part.Transparency < 1 then
                                     local itemName = prox.ObjectText
                                     
-                                    -- Check if this is an item we need
                                     local needThisItem = false
                                     if itemName == "Mysterious Arrow" and arrowCount < maxArrows then
                                         needThisItem = true
@@ -5523,18 +5513,15 @@ end
                                         itemsFarmed = true
                                         notify("Stand Farm", "Farming " .. itemName .. " (" .. CountItem(itemName) .. "/" .. (itemName == "Mysterious Arrow" and maxArrows or maxRokas) .. ")")
                                         
-                                        -- NOCLIP IS ALREADY ENABLED - move to item
                                         local origCFrame = HRP.CFrame
                                         local targetPos = part.Position
                                         
-                                        -- Move close to item
                                         HRP.CFrame = CFrame.new(targetPos - Vector3.new(0, 6, 0))
                                         HRP.Velocity = Vector3.new(0, 0, 0)
                                         HRP.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                                         
                                         task.wait(0.3)
                                         
-                                        -- Stick to item while collecting
                                         local stickStart = tick()
                                         local collected = false
                                         
@@ -5549,17 +5536,14 @@ end
                                                 break
                                             end
                                             
-                                            -- Keep noclip active and stay near item
                                             HRP.CFrame = CFrame.new(part.Position - Vector3.new(0, 6, 0))
                                             HRP.Velocity = Vector3.new(0, 0, 0)
                                             HRP.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                                             
-                                            -- Fire prompt multiple times
                                             pcall(function()
                                                 fireproximityprompt(prox, 0, true)
                                             end)
                                             
-                                            -- Check if collected
                                             if CountItem(itemName) > (itemName == "Mysterious Arrow" and arrowCount or rokaCount) then
                                                 collected = true
                                                 break
@@ -5568,14 +5552,12 @@ end
                                             task.wait(0.1)
                                         end
                                         
-                                        -- Return to original position
                                         HRP.CFrame = origCFrame
                                         HRP.Velocity = Vector3.new(0, 0, 0)
                                         HRP.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                                         
                                         task.wait(0.5)
                                         
-                                        -- Update counts
                                         arrowCount = CountItem("Mysterious Arrow")
                                         rokaCount = CountItem("Rokakaka")
                                     end
@@ -5583,10 +5565,8 @@ end
                             end
                         end
                         
-                        -- DISABLE NOCLIP AFTER FARMING
                         disableNoclipNow()
                         
-                        -- BUY ITEMS IF NONE FOUND AND WE HAVE MONEY
                         if not itemsFarmed and arrowCount == 0 and rokaCount == 0 and tick() > buyingCooldown then
                             local money = player.PlayerStats.Money.Value
                             local remote = Character:FindFirstChild("RemoteEvent")
@@ -7460,10 +7440,10 @@ AutoPrestigeSection:Paragraph({
 
 AutoPrestigeSection:Space()
 
--- Webhook URL Input
 AutoPrestigeSection:Input({
     Flag = "WebhookURL",
     Title = "Discord Webhook URL",
+    Locked = true,
     Placeholder = "https://discord.com/api/webhooks/...",
     Callback = function(value)
         if value and value:match("^https://discord.com/api/webhooks/") then
@@ -7477,7 +7457,6 @@ AutoPrestigeSection:Input({
 
 AutoPrestigeSection:Space()
 
--- Store start data for tracking
 local autoPrestigeStartData = {
     enabled = false,
     startTime = nil,
@@ -7577,7 +7556,7 @@ local function sendStatusWebhook(statusType, extraData)
         local duration = startTime and formatDuration(tick() - startTime) or "Unknown"
         
         embed.description = "@everyone 🎉 **PLAYER COMPLETED AUTO STORYLINE!** 🎉\n\nGive him a slap on the *****! 👋🍑"
-        embed.color = 16776960 -- Gold color
+        embed.color = 16776960
         embed.fields = {
             {name = "👤 Player", value = player.Name, inline = true},
             {name = "🏆 Final Status", value = "MAXED P3 L50!", inline = true},
@@ -7591,7 +7570,6 @@ local function sendStatusWebhook(statusType, extraData)
     sendWebhook({embeds = {embed}})
 end
 
--- Legacy function for backward compatibility
 local function vu93(p89)
     local embed = {
         title = "Methion Hub - Auto StoryLine",
@@ -7609,10 +7587,8 @@ AutoPrestigeSection:Toggle({
     Default = false,
     Callback = function(value)
         if value then
-            -- No gamepass check - completely free
             autoPrestigeEnabled = true
             
-            -- Track start data
             local player = game.Players.LocalPlayer
             autoPrestigeStartData = {
                 enabled = true,
@@ -7622,7 +7598,6 @@ AutoPrestigeSection:Toggle({
                 startDate = os.date("%Y-%m-%d %H:%M:%S")
             }
             
-            -- Send webhook for started
             sendStatusWebhook("started")
             
             notify("YBA Script", "Auto Prestige 3 Started!")
@@ -8182,7 +8157,6 @@ AutoPrestigeSection:Toggle({
                         if not autoPrestigeEnabled then return false end
                         
                         if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
-                            -- SEND COMPLETION WEBHOOK
                             sendStatusWebhook("completed")
                             
                             vu93("MAXED! P3 L50")
@@ -8352,7 +8326,6 @@ AutoPrestigeSection:Toggle({
                                         return doStorylineLoop()
                                     else
                                         if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
-                                            -- SEND COMPLETION WEBHOOK
                                             sendStatusWebhook("completed")
                                             
                                             vu93("MAXED! P" .. vu81.PlayerStats.Prestige.Value .. " L" .. vu81.PlayerStats.Level.Value)
@@ -8386,7 +8359,6 @@ AutoPrestigeSection:Toggle({
                         
                         if vu81.PlayerStats.Level.Value == 50 then
                             if vu81.PlayerStats.Prestige.Value >= 3 then
-                                -- SEND COMPLETION WEBHOOK
                                 sendStatusWebhook("completed")
                                 
                                 vu93("MAXED! P3 L50")
@@ -8426,7 +8398,6 @@ AutoPrestigeSection:Toggle({
                                 return doStorylineLoop()
                             else
                                 if vu81.PlayerStats.Level.Value == 50 and vu81.PlayerStats.Prestige.Value >= 3 then
-                                    -- SEND COMPLETION WEBHOOK
                                     sendStatusWebhook("completed")
                                     
                                     vu93("MAXED! P3 L50")
